@@ -10,11 +10,11 @@ class TCom
 
 public:
      explicit TCom();
-    ~TCom();
+     virtual ~TCom();
 
     QextSerialPort *pSerialCom; //串口通信调用指针
 
-    void SerialOpen();
+    bool SerialOpen();
     void SerialConfig();
     void SerialClose();
     void SerialSendData();
@@ -22,6 +22,7 @@ public:
 
 private:
     Ui::MainWindow *pMainWindow;
+
 
 };
 

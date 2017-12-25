@@ -131,7 +131,7 @@
       <string>数据位</string>
      </property>
     </widget>
-    <widget class="QComboBox" name="PorityBitComboBox">
+    <widget class="QComboBox" name="ParityBitComboBox">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -298,7 +298,7 @@
       <string>HEX</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="AsciiCheckBox_2">
+    <widget class="QCheckBox" name="AsciiRecCheckBox">
      <property name="geometry">
       <rect>
        <x>650</x>
@@ -337,7 +337,7 @@
       <string>HEX</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="AsciiCheckBox">
+    <widget class="QCheckBox" name="AsciiSendCheckBox">
      <property name="geometry">
       <rect>
        <x>651</x>
@@ -350,7 +350,7 @@
       <string>ASCII</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="SendClearPushButton">
+    <widget class="QPushButton" name="SendPushButton">
      <property name="geometry">
       <rect>
        <x>720</x>
@@ -360,7 +360,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>清空</string>
+      <string>发送</string>
      </property>
     </widget>
     <widget class="QTextBrowser" name="RecDataTextBrowser">
@@ -386,6 +386,22 @@
     <property name="title">
      <string>波形显示区</string>
     </property>
+    <widget class="QCustomPlot" name="WaveWidget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>50</y>
+       <width>671</width>
+       <height>391</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="StartPushButton">
     <property name="geometry">
@@ -475,6 +491,14 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">Qcustomplot/qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resource.qrc"/>
  </resources>
