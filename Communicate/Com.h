@@ -15,14 +15,17 @@ public:
     QextSerialPort *pSerialCom; //串口通信调用指针
 
     bool SerialOpen();
-    void SerialConfig();
+    void SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, QString *StopBit, QString *ParityBit);
     void SerialClose();
-    void SerialSendData();
-    void SerialRecData();
+    void SerialSendData(QString *SendData);
+    void SerialRecData(QString *RecDataAscii);
 
-private:
-    Ui::MainWindow *pMainWindow;
-
+public:
+    bool m_HexRecFlag;
+    bool m_AsciiRecFlag;
+    bool m_HexSendFlag;
+    bool m_AsciiSendFlag;
+    bool m_Handle;
 
 };
 

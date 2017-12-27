@@ -10,6 +10,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("CECPort雷达调试助手");
 
+    m_StartButtonState = false;
+    ui->StartPushButton->setText("STOP");
+
     pCom = new TCom;
     //预装端口号
     ui->PortComboBox->addItem("COM1");
@@ -34,18 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ParityBitComboBox->addItem("1");
     ui->ParityBitComboBox->addItem("2");
 
-    //连接信号与功能
-    connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));
-
-    connect(ui->StartPushButton, SIGNAL(clicked(bool)), this, SLOT(ClickStartButtonDispose()));
-    connect(ui->RecClearPushButton,SIGNAL(clicked(bool)),this,SLOT(ClickRecClearButtonDispose()));
-    connect(ui->SendPushButton,SIGNAL(clicked(bool)),this,SLOT(ClickSendButtonDispose()));
-    connect(ui->SaveScanRangePushButton,SIGNAL(clicked(bool)),this,SLOT(ClickSaveScanRangeButtonDispose()));
-
-    connect(ui->HEXRecCheckBox,SIGNAL(clicked(bool)),this,SLOT(CheckRecHexDispose()));
-    connect(ui->HEXSendCheckBox,SIGNAL(clicked(bool)),this,SLOT(CheckSendHexDispose()));
-    connect(ui->AsciiRecCheckBox,SIGNAL(clicked(bool)),this,SLOT(CheckRecAsciiDispose()));
-    connect(ui->AsciiSendCheckBox,SIGNAL(clicked(bool)),this,SLOT(CheckSendAsciiDispose()));
+    //复选框默认设置
+    ui->HEXRecCheckBox->setChecked(false);
+    ui->HEXSendCheckBox->setChecked(false);
+    ui->AsciiRecCheckBox->setChecked(true);
+    ui->AsciiSendCheckBox->setChecked(true);
 
     ui->WaveWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
 
@@ -68,31 +64,59 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::ClickRecClearButtonDispose()
+void MainWindow::on_RecClearPushButton_clicked()
+{
+    ui->RecDataTextBrowser->setText("");
+
+    return;
+}
+
+void MainWindow::on_SaveScanRangePushButton_clicked()
 {
 
 
 }
 
-void MainWindow::ClickSaveScanRangeButtonDispose()
+void MainWindow::on_SendPushButton_clicked()
 {
+    QString SendData = ui->SendDatalineEdit->displayText();
+    pCom->SerialSendData(&SendData);
 
-
+    return;
 }
 
-void MainWindow::ClickSendButtonDispose()
+void MainWindow::on_StartPushButton_clicked()
 {
+    if(!m_StartButtonState)
+    {
+        m_StartButtonState = true;
 
-}
+        QString PortName = ui->PortComboBox->currentText();//获取当前串口号字符串
+        QString BaudRate = ui->BaudComboBox->currentText();
+        QString DataBit = ui->DataBitComboBox->currentText();
+        QString StopBit = ui->StopBitComboBox->currentText();
+        QString ParityBit = ui->ParityBitComboBox->currentText();
 
-void MainWindow::ClickStartButtonDispose()
-{
+        pCom->SerialConfig(&PortName,&BaudRate,&DataBit,&StopBit,&ParityBit);
+        pCom->SerialOpen();
+        connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
+        ui->StartPushButton->setText("START");
+    }
+    else
+    {
+        m_StartButtonState = false;
+        pCom->SerialClose();
+        ui->StartPushButton->setText("STOP");
+    }
 
-
+    return;
 }
 
 void MainWindow::ReceiveData()
 {
+    QString RecDataAscii;
+    pCom->SerialRecData(&RecDataAscii);
+    ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
 
-
+    return;
 }

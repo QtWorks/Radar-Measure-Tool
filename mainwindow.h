@@ -17,28 +17,26 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    bool m_HexRecFlag;
-    bool m_AsciiRecFlag;
-    bool m_HexSendFlag;
-    bool m_AsciiSendFlag;
-
 private slots:
     //按钮处理
-    void ClickStartButtonDispose();
-    void ClickRecClearButtonDispose();
-    void ClickSendButtonDispose();
-    void ClickSaveScanRangeButtonDispose();
+    void on_RecClearPushButton_clicked();
+    void on_SendPushButton_clicked();
+    void on_StartPushButton_clicked();
+    void on_SaveScanRangePushButton_clicked();
+
     //复选框处理
-    void CheckRecHexDispose(bool checked){m_HexRecFlag = checked;}
-    void CheckRecAsciiDispose(bool checked){m_AsciiRecFlag = checked;}
-    void CheckSendHexDispose(bool checked){m_HexSendFlag = checked;}
-    void CheckSendAsciiDispose(bool checked){m_AsciiSendFlag = checked;}
+    void on_HEXRecCheckBox_toggled(bool checked){pCom->m_HexRecFlag = checked;}
+    void on_AsciiRecCheckBox_toggled(bool checked){pCom->m_AsciiRecFlag = checked;}
+    void on_HEXSendCheckBox_toggled(bool checked){pCom->m_HexSendFlag = checked;}
+    void on_AsciiSendCheckBox_toggled(bool checked){pCom->m_AsciiSendFlag = checked;}
     //接收数据
     void ReceiveData();
 
 private:
     Ui::MainWindow *ui;
     TCom *pCom;
+
+    bool m_StartButtonState;
 
 };
 
