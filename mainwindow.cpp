@@ -1,7 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -43,19 +40,42 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->AsciiRecCheckBox->setChecked(true);
     ui->AsciiSendCheckBox->setChecked(true);
 
-    ui->WaveWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
-
+    //波形图坐标设置
+    //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    //ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
     QBrush qBrushColor(QColor(255,255,255));
-    ui->WaveWidget->setBackground(qBrushColor);
+    ui->ChannelWidget->setBackground(qBrushColor);
+    ui->ChannelWidget->legend->setVisible(true);
+    ui->ChannelWidget->xAxis->setRange(-127,127);
+    ui->ChannelWidget->yAxis->setRange(-10,10);
+    for(int i=0;i<pCom->pAnalysis->m_Channels;i++)//根据通道数添加图层
+    {
+        ui->ChannelWidget->addGraph();
+    }
+    Pen.setWidth(3);
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(0)->setPen(Pen);
+    QVector<double> x(pCom->pAnalysis->m_ChannelsLeg),y(pCom->pAnalysis->m_ChannelsLeg);
+    for(int j=0;j<pCom->pAnalysis->m_ChannelsLeg;j++ )
+    {
+        x[j]=j-(pCom->pAnalysis->m_ChannelsLeg/2-1);
+        y[j]=0;
+    }
+    ui->ChannelWidget->graph(0)->setData(x,y);
+    Pen.setWidth(3);
+    Pen.setColor(Qt::blue);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    Pen.setWidth(3);
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->replot();
 
-    ui->WaveWidget->legend->setVisible(true);
-
-    ui->WaveWidget->xAxis->setLabel("Time Axis (T/s)");
-    ui->WaveWidget->xAxis->setRange(0,60);
-
-    ui->WaveWidget->yAxis->setLabel("Speed Axis (V)");
-    ui->WaveWidget->yAxis->setRange(0,100);
-
+    ui->ResultWidget->setBackground(qBrushColor);
+    ui->ResultWidget->legend->setVisible(true);
+    ui->ResultWidget->xAxis->setRange(-127,127);
+    ui->ResultWidget->yAxis->setRange(-10,10);
 }
 
 MainWindow::~MainWindow()
@@ -74,6 +94,11 @@ void MainWindow::on_RecClearPushButton_clicked()
 void MainWindow::on_SaveScanRangePushButton_clicked()
 {
 
+
+}
+
+void MainWindow::on_SaveSerialCfgPushButton_clicked()
+{
 
 }
 
@@ -100,6 +125,7 @@ void MainWindow::on_StartPushButton_clicked()
         pCom->SerialConfig(&PortName,&BaudRate,&DataBit,&StopBit,&ParityBit);
         pCom->SerialOpen();
         connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
+        connect(pCom->pSerialCom,SIGNAL(readyRead()),this,SLOT(ShowWave()));
         ui->StartPushButton->setText("START");
     }
     else
@@ -112,6 +138,43 @@ void MainWindow::on_StartPushButton_clicked()
     return;
 }
 
+void MainWindow::on_HEXRecCheckBox_toggled(bool checked)
+{
+    if(pCom->m_AsciiRecFlag){pCom->m_AsciiRecFlag=false;}
+    ui->AsciiRecCheckBox->setChecked(false);
+    pCom->m_HexRecFlag = checked;
+
+    return;
+}
+
+void MainWindow::on_AsciiRecCheckBox_toggled(bool checked)
+{
+    if(pCom->m_HexRecFlag){pCom->m_HexRecFlag=false;}
+    ui->HEXRecCheckBox->setChecked(false);
+    pCom->m_AsciiRecFlag = checked;
+
+    return;
+}
+
+void MainWindow::on_HEXSendCheckBox_toggled(bool checked)
+{
+    if(pCom->m_AsciiSendFlag){pCom->m_AsciiSendFlag=false;}
+    ui->AsciiSendCheckBox->setChecked(false);
+    pCom->m_HexSendFlag = checked;
+
+    return;
+}
+
+void MainWindow::on_AsciiSendCheckBox_toggled(bool checked)
+{
+    if(pCom->m_HexSendFlag){pCom->m_HexSendFlag=false;}
+    ui->HEXSendCheckBox->setChecked(false);
+    pCom->m_AsciiSendFlag = checked;
+
+    return;
+
+}
+
 void MainWindow::ReceiveData()
 {
     QString RecDataAscii;
@@ -120,3 +183,12 @@ void MainWindow::ReceiveData()
 
     return;
 }
+
+void MainWindow::ShowWave()
+{
+    qDebug("Into ShowWave\n");
+
+    return;
+}
+
+

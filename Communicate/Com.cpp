@@ -1,11 +1,13 @@
 
 #include "Com.h"
-#include <qmessagebox.h>
+#include "qt_windows.h"
+#include <qsettings.h>
 
 //构造
 TCom::TCom()
 {
     pSerialCom = NULL;
+    pAnalysis = new TAnalysis;
 
     m_HexRecFlag = false;
     m_AsciiRecFlag = true;
@@ -74,6 +76,7 @@ void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, Q
 void TCom::SerialRecData(QString *RecDataAscii)
 {
     QByteArray RecDataBuf = pSerialCom->readAll();
+    pAnalysis->AnalysisRecvData(&RecDataBuf);//对接受数据解析处理
 
     if(m_HexRecFlag)//ture
     {
@@ -121,3 +124,53 @@ void TCom::SerialSendData(QString *SendData)
 
     return;
 }
+
+void TCom::SerialEnum()
+{
+    QString path = "HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIAL";
+    QSettings *setting = new QSettings(path,QSettings::NativeFormat);
+    QStringList keys = setting->allKeys();
+    int num = (int)keys.size();
+    for(int index=0;index<num;index++)
+    {
+        HKEY hKey;
+        if(::RegOpenKeyExW(HKEY_LOCAL_MACHINE,TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"),0,KEY_READ,&hKey) != 0)//打开注册表
+        {
+            return;
+        }
+        else
+        {
+            QString KeyNameMessage;
+            QString Message;
+            QString KeyValueMessage;
+
+            DWORD keyname_size,keyvalue_size,type;
+            wchar_t keyvalue[256];
+            wchar_t keyname[256];
+            keyname_size = sizeof(keyname);
+            keyvalue_size = sizeof(keyvalue);
+            if(::RegEnumKeyExW(hKey,index,keyname,&keyname_size,&type,keyvalue,&keyvalue_size,NULL) == 0)
+            {
+                for(unsigned int i=0;i<keyname_size;i++)
+                {
+                    Message = keyname[i];
+                    KeyNameMessage.append(Message);
+                }
+                for(unsigned int j=0;j<keyvalue_size;j++)
+                {
+                    if(keyvalue[j]!=0x00)
+                    {
+                        KeyValueMessage.append(keyvalue[j]);
+                    }
+                }
+            }
+            m_ComListName<<KeyNameMessage;
+        }
+    }
+}
+
+
+
+
+
+

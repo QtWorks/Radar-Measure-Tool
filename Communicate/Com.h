@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "Qextserial/qextserialport.h"
-#include "ui_mainwindow.h"
+#include "Analysis/analysis.h"
 
 class TCom
 {
@@ -19,6 +19,7 @@ public:
     void SerialClose();
     void SerialSendData(QString *SendData);
     void SerialRecData(QString *RecDataAscii);
+    void SerialEnum();
 
 public:
     bool m_HexRecFlag;
@@ -26,6 +27,11 @@ public:
     bool m_HexSendFlag;
     bool m_AsciiSendFlag;
     bool m_Handle;
+
+    QStringList m_ComListName;//串口表
+
+    TAnalysis *pAnalysis;
+
 
 };
 

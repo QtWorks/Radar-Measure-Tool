@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1085</width>
-    <height>769</height>
+    <width>1078</width>
+    <height>816</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>50</x>
       <y>230</y>
       <width>241</width>
-      <height>261</height>
+      <height>291</height>
      </rect>
     </property>
     <property name="title">
@@ -141,14 +141,27 @@
       </rect>
      </property>
     </widget>
+    <widget class="QPushButton" name="SaveSerialCfgPushButton">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>249</y>
+       <width>93</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>保存</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="ScanRangeGroupBox">
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>500</y>
+      <y>540</y>
       <width>241</width>
-      <height>201</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
@@ -226,9 +239,9 @@
     <widget class="QPushButton" name="SaveScanRangePushButton">
      <property name="geometry">
       <rect>
-       <x>60</x>
-       <y>160</y>
-       <width>81</width>
+       <x>70</x>
+       <y>150</y>
+       <width>91</width>
        <height>28</height>
       </rect>
      </property>
@@ -379,20 +392,20 @@
      <rect>
       <x>300</x>
       <y>230</y>
-      <width>731</width>
-      <height>471</height>
+      <width>751</width>
+      <height>501</height>
      </rect>
     </property>
     <property name="title">
      <string>波形显示区</string>
     </property>
-    <widget class="QCustomPlot" name="WaveWidget" native="true">
+    <widget class="QCustomPlot" name="ChannelWidget" native="true">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>50</y>
-       <width>671</width>
-       <height>391</height>
+       <x>20</x>
+       <y>40</y>
+       <width>711</width>
+       <height>191</height>
       </rect>
      </property>
      <property name="cursor">
@@ -402,12 +415,48 @@
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QCustomPlot" name="ResultWidget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>260</y>
+       <width>711</width>
+       <height>221</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="ChannelLabel">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>20</y>
+       <width>72</width>
+       <height>15</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>通道显示</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="ResultLabel">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>240</y>
+       <width>72</width>
+       <height>15</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>速度显示</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="StartPushButton">
     <property name="geometry">
      <rect>
       <x>870</x>
-      <y>150</y>
+      <y>159</y>
       <width>131</width>
       <height>61</height>
      </rect>
@@ -420,22 +469,6 @@
     </property>
     <property name="text">
      <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="IndicateLabel">
-    <property name="geometry">
-     <rect>
-      <x>891</x>
-      <y>54</y>
-      <width>91</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap resource="resource.qrc">:/new/images/Resouce/image.png</pixmap>
     </property>
    </widget>
    <widget class="QLabel" name="TitleLabel">
@@ -457,14 +490,27 @@
      <string>CECPort 毫米波雷达调试工具</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="SignalPushButton">
+    <property name="geometry">
+     <rect>
+      <x>870</x>
+      <y>86</y>
+      <width>131</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1085</width>
-     <height>23</height>
+     <width>1078</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="FileMenu">
@@ -499,8 +545,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

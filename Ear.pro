@@ -17,6 +17,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+#DEFINES -= UNICODE
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -30,7 +31,8 @@ SOURCES += \
     Qextserial/qextserialport.cpp \
     Qextserial/qextserialport_win.cpp \
     Qcustomplot/qcustomplot.cpp \
-    Communicate/Com.cpp
+    Communicate/Com.cpp \
+    Analysis/analysis.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,7 +40,8 @@ HEADERS += \
     Qextserial/qextserialport_global.h \
     Qextserial/qextserialport_p.h \
     Qcustomplot/qcustomplot.h \
-    Communicate/Com.h
+    Communicate/Com.h \
+    Analysis/analysis.h
 
 FORMS += \
         mainwindow.ui
