@@ -9,10 +9,10 @@ TCom::TCom()
     pSerialCom = NULL;
     pAnalysis = new TAnalysis;
 
-    m_HexRecFlag = false;
-    m_AsciiRecFlag = true;
-    m_HexSendFlag = false;
-    m_AsciiSendFlag = true;
+    m_HexRecFlag = true;
+    m_AsciiRecFlag = false;
+    m_HexSendFlag = true;
+    m_AsciiSendFlag = false;
     m_Handle = false;
 
     return;
@@ -61,8 +61,8 @@ void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, Q
     qDebug("StopBit=%d\n",(*StopBit).toInt());
     switch((*StopBit).toInt())//设置串口停止位
     {
-        case 0:pSerialCom->setStopBits(STOP_1);break;
-        case 1:pSerialCom->setStopBits(STOP_1_5);break;
+        case 1:pSerialCom->setStopBits(STOP_1);break;
+        //case 1.5:pSerialCom->setStopBits(STOP_1_5);break;
         case 2:pSerialCom->setStopBits(STOP_2);break;
         default:pSerialCom->setStopBits(STOP_1);break;
     }
@@ -86,7 +86,7 @@ void TCom::SerialRecData(QString *RecDataAscii)
         {
             QString st = str.mid(i,2);//从i开始截取2个字符
             *RecDataAscii += st;
-            *RecDataAscii += "";
+            *RecDataAscii += " ";
         }
     }
     else if(m_AsciiRecFlag)
@@ -127,7 +127,7 @@ void TCom::SerialSendData(QString *SendData)
 
 void TCom::SerialEnum()
 {
-    QString path = "HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIAL";
+    QString path = "HKEY_LOCAL_MACHINE\\HARDWARE\\DEVICEMAP\\SERIALCOMM";
     QSettings *setting = new QSettings(path,QSettings::NativeFormat);
     QStringList keys = setting->allKeys();
     int num = (int)keys.size();
@@ -136,6 +136,7 @@ void TCom::SerialEnum()
         HKEY hKey;
         if(::RegOpenKeyExW(HKEY_LOCAL_MACHINE,TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"),0,KEY_READ,&hKey) != 0)//打开注册表
         {
+            qDebug("Can not open regedit!\n");
             return;
         }
         else
@@ -143,30 +144,37 @@ void TCom::SerialEnum()
             QString KeyNameMessage;
             QString Message;
             QString KeyValueMessage;
-
             DWORD keyname_size,keyvalue_size,type;
-            wchar_t keyvalue[256];
+            unsigned char keyvalue[256];
             wchar_t keyname[256];
+
             keyname_size = sizeof(keyname);
             keyvalue_size = sizeof(keyvalue);
-            if(::RegEnumKeyExW(hKey,index,keyname,&keyname_size,&type,keyvalue,&keyvalue_size,NULL) == 0)
+
+            if(::RegEnumValueW(hKey,index,keyname,&keyname_size,NULL,&type,keyvalue,&keyvalue_size) == 0)
             {
                 for(unsigned int i=0;i<keyname_size;i++)
                 {
                     Message = keyname[i];
                     KeyNameMessage.append(Message);
+                    //qDebug("%s\n",KeyNameMessage.toStdString().data());
                 }
                 for(unsigned int j=0;j<keyvalue_size;j++)
                 {
                     if(keyvalue[j]!=0x00)
                     {
                         KeyValueMessage.append(keyvalue[j]);
+                        //qDebug("%s\n",KeyValueMessage.toStdString().data());
                     }
                 }
             }
-            m_ComListName<<KeyNameMessage;
+
+            m_ComListName<<KeyValueMessage;
+            RegCloseKey(hKey);
         }
     }
+    delete(setting);
+    return;
 }
 
 

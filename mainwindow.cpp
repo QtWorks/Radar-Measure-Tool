@@ -11,21 +11,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->StartPushButton->setText("STOP");
 
     pCom = new TCom;
+
     //预装端口号
-    ui->PortComboBox->addItem("COM1");
-    ui->PortComboBox->addItem("COM2");
-    ui->PortComboBox->addItem("COM3");
+    pCom->SerialEnum();
+    ui->PortComboBox->addItems(pCom->m_ComListName);
 
     //预装波特率
+    ui->BaudComboBox->addItem("9600");
+    ui->BaudComboBox->addItem("19200");
+    ui->BaudComboBox->addItem("56000");
     ui->BaudComboBox->addItem("115200");
     ui->BaudComboBox->addItem("128000");
     ui->BaudComboBox->addItem("256000");
 
     //预装数据位
     ui->DataBitComboBox->addItem("8");
+    ui->DataBitComboBox->addItem("7");
+    ui->DataBitComboBox->addItem("6");
+    ui->DataBitComboBox->addItem("5");
 
     //预装停止位
-    ui->StopBitComboBox->addItem("0");
     ui->StopBitComboBox->addItem("1");
     ui->StopBitComboBox->addItem("2");
 
@@ -35,10 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ParityBitComboBox->addItem("2");
 
     //复选框默认设置
-    ui->HEXRecCheckBox->setChecked(false);
-    ui->HEXSendCheckBox->setChecked(false);
-    ui->AsciiRecCheckBox->setChecked(true);
-    ui->AsciiSendCheckBox->setChecked(true);
+    ui->HEXRecCheckBox->setChecked(true);
+    ui->HEXSendCheckBox->setChecked(true);
+    ui->AsciiRecCheckBox->setChecked(false);
+    ui->AsciiSendCheckBox->setChecked(false);
 
     //波形图坐标设置
     //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
@@ -99,7 +104,22 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
 
 void MainWindow::on_SaveSerialCfgPushButton_clicked()
 {
+    QString PATH = "config.xml";
+    QSettings *pSetting = new QSettings(PATH, QSettings::IniFormat);
+    const char *str;
+    int value;
+    str = ui->PortComboBox->currentText().toStdString().data();
+    pSetting->setValue("Port",*str);
+    value = (BaudRateType)ui->BaudComboBox->currentText().toInt();
+    pSetting->setValue("Baud",value);
+    value = ui->DataBitComboBox->currentText().toInt();
+    pSetting->setValue("Databit",value);
+    value = ui->StopBitComboBox->currentText().toInt();
+    pSetting->setValue("Stopbit",value);
+    value = ui->ParityBitComboBox->currentText().toInt();
+    pSetting->setValue("Paritybit",value);
 
+    return;
 }
 
 void MainWindow::on_SendPushButton_clicked()
