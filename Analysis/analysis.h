@@ -17,8 +17,9 @@ public:
     TAnalysis();
     ~TAnalysis();
 
-    void AnalysisRecvData(QByteArray *RecvDataArray);//协议数据解析
+    void AnalysisRecvData();//协议数据解析
     bool uStrcmp(unsigned char *str1,char *str2);
+    int HexToInt(QString s, char len);
 
 public:
     unsigned char m_StartBytes[4];  //起始字节

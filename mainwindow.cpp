@@ -207,6 +207,7 @@ void MainWindow::ReceiveData()
 void MainWindow::ShowWave()
 {
     qDebug("Into ShowWave\n");
+    pCom->pAnalysis->AnalysisRecvData();
 
     return;
 }

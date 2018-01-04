@@ -1,5 +1,7 @@
 #include "Analysis/analysis.h"
 #include "qbytearray.h"
+#include <QFile>
+#include <QDebug>
 
 TAnalysis::TAnalysis()
 {
@@ -14,18 +16,33 @@ TAnalysis::~TAnalysis()
 
 }
 
-void TAnalysis::AnalysisRecvData(QByteArray *RecvDataArray)
+void TAnalysis::AnalysisRecvData()
 {
-    QByteArray AnalysisBuf;
-    strcpy(AnalysisBuf.data(),RecvDataArray->data());
-    unsigned char StartBytes[4]={0xe4,0x2c,0xe4,0x2c};
-    char *str = NULL;
-    str=AnalysisBuf.mid(0,4).data();
-    qDebug("str:%x,%x,%x,%x\n",(str[0]&0xff),(str[1]&0xff),(str[2]&0xff),(str[3]&0xff));
-    if(uStrcmp(StartBytes,str))
+    QFile file("test.txt");
+    if(!file.open(QFile::ReadOnly | QIODevice::Text))
     {
-        qDebug("start ok...\n");
+        qDebug("can not open file!\n");
+        return;
     }
+    QByteArray DataArray;
+    while (!file.atEnd())
+    {
+        DataArray = file.readAll();//读出所有字符
+    }
+    file.close();
+    QString str(DataArray);
+    qDebug()<<str;
+    int temp[65535];
+    int j=0;
+    for(int i=0;i<str.length();i+=3)
+    {
+        QString st = str.mid(i,2);//从i开始截取2个字符
+        qDebug() << st;
+        temp[j++] = HexToInt(st,2);
+        qDebug("%d\n",temp[j-1]);
+    }
+
+    m_Channels = temp[4];
 
     return;
 }
@@ -42,4 +59,27 @@ bool TAnalysis::uStrcmp(unsigned char *str1, char *str2)
     }
 
     return true;
+}
+
+int TAnalysis::HexToInt(QString s, char len)
+{
+       int i;
+       int n = 0;
+
+       if(s.length()<len) return 0;
+
+       for (i=0;i<len;++i)
+       {
+           if (s.at(i) > '9')
+           {
+               n = 16 * n + (10 + s.at(i).toLatin1() - 'A');
+           }
+           else
+           {
+               n = 16 * n +( s.at(i).toLatin1() - '0');
+           }
+       }
+
+       return n;
+
 }

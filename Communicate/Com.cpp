@@ -48,7 +48,8 @@ void TCom::SerialClose()
 
 void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, QString *StopBit, QString *ParityBit)
 {
-    pSerialCom = new QextSerialPort(*PortName);//新建
+    pSerialCom = new QextSerialPort(*PortName);
+    qDebug("Set Baud Rate:%d\n",(*BaudRate).toInt());
     pSerialCom->setBaudRate((BaudRateType)(*BaudRate).toInt());//设置串口波特率
     pSerialCom->setDataBits((DataBitsType)(*Databit).toInt());//设置串口数据位
     switch((*ParityBit).toInt())//设置串口校验位
@@ -68,7 +69,7 @@ void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, Q
     }
 
     pSerialCom->setFlowControl(FLOW_OFF);//设置控制流
-    pSerialCom->setTimeout(200);//设置延时
+    pSerialCom->setTimeout(500);//设置延时
 
     return;
 }
@@ -76,7 +77,6 @@ void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, Q
 void TCom::SerialRecData(QString *RecDataAscii)
 {
     QByteArray RecDataBuf = pSerialCom->readAll();
-    pAnalysis->AnalysisRecvData(&RecDataBuf);//对接受数据解析处理
 
     if(m_HexRecFlag)//ture
     {
@@ -117,7 +117,6 @@ void TCom::SerialSendData(QString *SendData)
     else
     {
         SendDataArray = "";
-
     }
 
     pSerialCom->write(SendDataArray);
