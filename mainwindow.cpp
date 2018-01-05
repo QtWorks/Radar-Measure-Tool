@@ -46,41 +46,28 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->AsciiSendCheckBox->setChecked(false);
 
     //波形图坐标设置
-    //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
-    //ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
     QBrush qBrushColor(QColor(255,255,255));
     ui->ChannelWidget->setBackground(qBrushColor);
     ui->ChannelWidget->legend->setVisible(true);
+    ui->ChannelWidget->legend->setBrush(QColor(255,255,255,0));
     ui->ChannelWidget->xAxis->setRange(-127,127);
-    ui->ChannelWidget->yAxis->setRange(-10,10);
+    ui->ChannelWidget->xAxis->setLabelColor(QColor(255,0,0));
+    ui->ChannelWidget->yAxis->setRange(-65535,65535);
+    ui->ChannelWidget->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignBottom | Qt::AlignRight);
+    ui->ChannelWidget->xAxis->setRange(-(pCom->pAnalysis->m_ChannelsLeg/2-1),(pCom->pAnalysis->m_ChannelsLeg/2-1));
+    ui->ChannelWidget->yAxis->setRange(-65535,65535);
     for(int i=0;i<pCom->pAnalysis->m_Channels;i++)//根据通道数添加图层
     {
         ui->ChannelWidget->addGraph();
     }
-    Pen.setWidth(3);
-    Pen.setColor(Qt::red);
-    ui->ChannelWidget->graph(0)->setPen(Pen);
-    QVector<double> x(pCom->pAnalysis->m_ChannelsLeg),y(pCom->pAnalysis->m_ChannelsLeg);
-    for(int j=0;j<pCom->pAnalysis->m_ChannelsLeg;j++ )
-    {
-        x[j]=j-(pCom->pAnalysis->m_ChannelsLeg/2-1);
-        y[j]=0;
-    }
-    ui->ChannelWidget->graph(0)->setData(x,y);
-    Pen.setWidth(3);
-    Pen.setColor(Qt::blue);
-    ui->ChannelWidget->graph(1)->setPen(Pen);
-    ui->ChannelWidget->graph(1)->setData(x,y);
-    Pen.setWidth(3);
-    Pen.setColor(Qt::green);
-    ui->ChannelWidget->graph(2)->setPen(Pen);
-    ui->ChannelWidget->graph(2)->setData(x,y);
-    ui->ChannelWidget->replot();
 
     ui->ResultWidget->setBackground(qBrushColor);
     ui->ResultWidget->legend->setVisible(true);
     ui->ResultWidget->xAxis->setRange(-127,127);
     ui->ResultWidget->yAxis->setRange(-10,10);
+
 }
 
 MainWindow::~MainWindow()
@@ -207,7 +194,16 @@ void MainWindow::ReceiveData()
 void MainWindow::ShowWave()
 {
     qDebug("Into ShowWave\n");
-    pCom->pAnalysis->AnalysisRecvData();
+    QVector<double> x(1000),y(1000);
+    pCom->pAnalysis->AnalysisRecvData(x,y);
+
+
+    Pen.setWidth(3);
+    Pen.setColor(Qt::blue);
+    ui->ChannelWidget->graph(0)->setPen(Pen);
+
+    ui->ChannelWidget->graph(0)->setData(x,y);
+    ui->ChannelWidget->replot();
 
     return;
 }
