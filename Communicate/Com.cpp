@@ -7,7 +7,6 @@
 TCom::TCom()
 {
     pSerialCom = NULL;
-    pAnalysis = new TAnalysis;
 
     m_HexRecFlag = true;
     m_AsciiRecFlag = false;

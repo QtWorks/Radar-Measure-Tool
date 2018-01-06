@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "Qextserial/qextserialport.h"
-#include "Analysis/analysis.h"
+
 
 class TCom
 {
@@ -29,9 +29,6 @@ public:
     bool m_Handle;
 
     QStringList m_ComListName;//串口表
-
-    TAnalysis *pAnalysis;
-
 
 };
 

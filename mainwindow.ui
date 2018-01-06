@@ -461,7 +461,7 @@
      </font>
     </property>
     <property name="text">
-     <string>CECPort 毫米波雷达调试工具</string>
+     <string>串口调试工具</string>
     </property>
    </widget>
    <widget class="QPushButton" name="SignalPushButton">

@@ -30,7 +30,7 @@ public:
     TAnalysis();
     ~TAnalysis();
 
-    void AnalysisRecvData(QVector<double> &graph1_x, QVector<double> &graph1_y);//协议数据解析
+    void AnalysisRecvData(QString &str);//协议数据解析
     bool uStrcmp(unsigned char *str1,char *str2);
     unsigned char HexToValue(QString s);
 
@@ -44,6 +44,17 @@ public:
     unsigned short m_NegativeAmp;
     unsigned short m_StopByte[4];
     unsigned short m_DotNum;
+    unsigned short m_DisplayDotNum;
+
+    double *m_Channel_x;
+    double *m_Channel1_y;
+    double *m_Channel2_y;
+    double *m_Channel3_y;
+    double *m_Channel4_y;
+    double *m_Channel5_y;
+    double *m_Channel6_y;
+    double *m_Channel7_y;
+    double *m_Channel8_y;
 
 };
 

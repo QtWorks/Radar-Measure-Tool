@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->StartPushButton->setText("STOP");
 
     pCom = new TCom;
+    pAnalysis = new TAnalysis;
 
     //预装端口号
     pCom->SerialEnum();
@@ -46,8 +47,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->AsciiSendCheckBox->setChecked(false);
 
     //波形图坐标设置
-    ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
-    ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    //ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
     QBrush qBrushColor(QColor(255,255,255));
     ui->ChannelWidget->setBackground(qBrushColor);
     ui->ChannelWidget->legend->setVisible(true);
@@ -56,9 +57,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ChannelWidget->xAxis->setLabelColor(QColor(255,0,0));
     ui->ChannelWidget->yAxis->setRange(-65535,65535);
     ui->ChannelWidget->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignBottom | Qt::AlignRight);
-    ui->ChannelWidget->xAxis->setRange(-(pCom->pAnalysis->m_ChannelsLeg/2-1),(pCom->pAnalysis->m_ChannelsLeg/2-1));
+    ui->ChannelWidget->xAxis->setRange(-(pAnalysis->m_ChannelsLeg/2-1),(pAnalysis->m_ChannelsLeg/2-1));
     ui->ChannelWidget->yAxis->setRange(-65535,65535);
-    for(int i=0;i<pCom->pAnalysis->m_Channels;i++)//根据通道数添加图层
+    for(int i=0;i<pAnalysis->m_Channels;i++)//根据通道数添加图层
     {
         ui->ChannelWidget->addGraph();
     }
@@ -73,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete pCom;
+    delete pAnalysis;
     delete ui;
 }
 
@@ -132,7 +134,7 @@ void MainWindow::on_StartPushButton_clicked()
         pCom->SerialConfig(&PortName,&BaudRate,&DataBit,&StopBit,&ParityBit);
         pCom->SerialOpen();
         connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
-        connect(pCom->pSerialCom,SIGNAL(readyRead()),this,SLOT(ShowWave()));
+        //connect(pCom->pSerialCom,SIGNAL(readyRead()),this,SLOT(ShowWave()));
         ui->StartPushButton->setText("START");
     }
     else
@@ -186,23 +188,64 @@ void MainWindow::ReceiveData()
 {
     QString RecDataAscii;
     pCom->SerialRecData(&RecDataAscii);
+    pAnalysis->AnalysisRecvData(RecDataAscii);
     ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
+    ShowWave();
 
     return;
 }
 
 void MainWindow::ShowWave()
 {
-    qDebug("Into ShowWave\n");
-    QVector<double> x(1000),y(1000);
-    pCom->pAnalysis->AnalysisRecvData(x,y);
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
 
-
-    Pen.setWidth(3);
-    Pen.setColor(Qt::blue);
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setWidth(1);
+    Pen.setColor(Qt::green);
     ui->ChannelWidget->graph(0)->setPen(Pen);
 
     ui->ChannelWidget->graph(0)->setData(x,y);
+    ui->ChannelWidget->replot();
+
+    for(int j=0;j<nSize;j++)
+    {
+        x[j] = pAnalysis->m_Channel_x[j];
+        y[j] = pAnalysis->m_Channel2_y[j];
+    }
+    Pen.setWidth(1);
+    Pen.setColor(Qt::blue);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->replot();
+
+    for(int k=0;k<nSize;k++)
+    {
+        x[k] = pAnalysis->m_Channel_x[k];
+        y[k] = pAnalysis->m_Channel3_y[k];
+    }
+    Pen.setWidth(1);
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->replot();
+
+    for(int l=0;l<nSize;l++)
+    {
+        x[l] = pAnalysis->m_Channel_x[l];
+        y[l] = pAnalysis->m_Channel3_y[l];
+    }
+    Pen.setWidth(1);
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+
+    ui->ChannelWidget->graph(3)->setData(x,y);
     ui->ChannelWidget->replot();
 
     return;

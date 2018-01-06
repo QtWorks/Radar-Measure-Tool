@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 #include "Communicate/Com.h"
+#include "Analysis/analysis.h"
 #include "Qcustomplot/qcustomplot.h"
 
 namespace Ui {
@@ -39,9 +40,10 @@ private slots:
 private:
     Ui::MainWindow *ui;
     TCom *pCom;//串口
-    QPen Pen;//画笔
-    bool m_StartButtonState;//开始按钮标志
+    TAnalysis *pAnalysis;
 
+    bool m_StartButtonState;//开始按钮标志
+    QPen Pen;//画笔
 };
 
 #endif // MAINWINDOW_H
