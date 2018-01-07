@@ -48,3 +48,5 @@ FORMS += \
 
 RESOURCES += \
     resource.qrc
+
+RC_ICONS = tool.ico

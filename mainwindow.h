@@ -41,9 +41,11 @@ private:
     Ui::MainWindow *ui;
     TCom *pCom;//串口
     TAnalysis *pAnalysis;
-
     bool m_StartButtonState;//开始按钮标志
     QPen Pen;//画笔
+    QString PATH;
+    QSettings *pSetting;
+    int index;
 };
 
 #endif // MAINWINDOW_H

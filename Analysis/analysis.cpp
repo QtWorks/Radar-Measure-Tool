@@ -32,10 +32,9 @@ TAnalysis::~TAnalysis()
     delete [] m_Channel8_y;
 }
 
-void TAnalysis::AnalysisRecvData(QString &str)
+void TAnalysis::AnalysisRecvData()
 {
     //从文件中读取数据
-    /*
     QFile file("test.txt");
     if(!file.open(QFile::ReadOnly | QIODevice::Text))
     {
@@ -49,96 +48,105 @@ void TAnalysis::AnalysisRecvData(QString &str)
     }
     file.close();
     QString str(DataArray);
-    */
-
-    //从串口读出的数据
-    qDebug()<<str;
-    int nFrameLen = str.length();
-    qDebug("A Frame Length=%d\n",nFrameLen);
-    unsigned char temp[nFrameLen];
-    int nDataCount=0;
-    for(int i=0;i<nFrameLen;i+=3)
+    QString StartBytes = "E4 2C E4 2C";
+    QString StopBytes = "E4 8B E4 8B";
+    if(m_AnalysisBuf.contains(StartBytes)&&m_AnalysisBuf.contains(StopBytes))
     {
-        QString st = str.mid(i,2);//从i开始截取2个字符
-        temp[nDataCount++] = HexToValue(st);//将hex字符转成数字值
-        //printf("%x,",temp[nDataCount-1]);
-    }
-    qDebug("A Frame Data Counts:%d\n",nDataCount);
-    switch (char step=0)
-    {
-        case 0://截取起始字节
+        qDebug("Get a valid Frame!\n");
+        qDebug()<<str;
+        int nFrameLen = str.length();
+        qDebug("A Frame Length=%d\n",nFrameLen);
+        unsigned char temp[nFrameLen];
+        int nDataCount=0;
+        for(int i=0;i<nFrameLen;i+=3)
         {
-             if((temp[0]==0xE4)&&(temp[1]==0x2C)&&(temp[2]==0xE4)&&temp[3]==0x2C)
-             {
-                 step = 1;
-             }
-             else
-             {
-                 qDebug("StartBytes Error!\n");
-                 qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[0],temp[1],temp[2],temp[3]);
-                 break;
-             }
+            QString st = str.mid(i,2);//从i开始截取2个字符
+            temp[nDataCount++] = HexToValue(st);//将hex字符转成数字值
+            //printf("%x,",temp[nDataCount-1]);
         }
-
-        case 1:
+        qDebug("A Frame Data Counts:%d\n",nDataCount);
+        switch (char step=0)
         {
-            if((temp[nDataCount-1]==0x8B)&&(temp[nDataCount-2]==0xE4)&&(temp[nDataCount-3]==0x8B)&&(temp[nDataCount-4]==0xE4))
+            case 0://截取起始字节
             {
-                step = 2;
+                 if((temp[0]==0xE4)&&(temp[1]==0x2C)&&(temp[2]==0xE4)&&temp[3]==0x2C)
+                 {
+                     step = 1;
+                 }
+                 else
+                 {
+                     qDebug("StartBytes Error!\n");
+                     qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[0],temp[1],temp[2],temp[3]);
+                     break;
+                 }
             }
-            else
+
+            case 1:
             {
-                qDebug("StopBytes Error!\n");
-                qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[nDataCount-4],temp[nDataCount-3],temp[nDataCount-2],temp[nDataCount-1]);
-                break;
-            }
-        }
-
-        case 2://截取通道数
-        {
-            m_Channels = temp[4];
-            qDebug("m_Channels = %x\n",m_Channels);
-            step = 3;
-        }
-
-        case 3: //截取通道长度
-        {
-            t_DataValue channellen;
-            channellen.Data.HIGH_BYTE = temp[5];
-            channellen.Data.LOW_BYTE = temp[6];
-            m_ChannelsLeg = channellen.value;
-            m_DotNum = temp[5]*0xffff+temp[6];//从数据帧中获取的点数
-            m_DisplayDotNum = (nDataCount-19)/(2*m_Channels);//实际点数
-            qDebug("m_ChannelsLeg = %d, m_DotNum = %d, m_DisplayDotNum=%d\n",m_ChannelsLeg,m_DotNum,m_DisplayDotNum);
-            step = 4;
-        }
-
-        case 4: //截取坐标数据
-        {
-            int pos = 7;
-            t_DataValue dotvalue;
-            double tmp[m_Channels];
-            int nValueCount = (nDataCount-19);
-            qDebug("A Frame Value Count:%d\n",nValueCount);
-            for(int n=0;n<m_DisplayDotNum;n++)
-            {
-                for(int m=0;m<m_Channels;m++)//通道的第一个点
+                if((temp[nDataCount-1]==0x8B)&&(temp[nDataCount-2]==0xE4)&&(temp[nDataCount-3]==0x8B)&&(temp[nDataCount-4]==0xE4))
                 {
-                    dotvalue.Data.HIGH_BYTE = temp[pos++];
-                    dotvalue.Data.LOW_BYTE = temp[pos++];
-                    tmp[m] = (double)dotvalue.value;
+                    step = 2;
                 }
-                m_Channel1_y[n] = tmp[0];
-                m_Channel2_y[n] = tmp[1];
-                m_Channel3_y[n] = tmp[2];
-                m_Channel4_y[n] = tmp[3];
-                m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
+                else
+                {
+                    qDebug("StopBytes Error!\n");
+                    qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[nDataCount-4],temp[nDataCount-3],temp[nDataCount-2],temp[nDataCount-1]);
+                    break;
+                }
             }
-        }
-        break;
 
-        default:
+            case 2://截取通道数
+            {
+                m_Channels = temp[4];
+                qDebug("m_Channels = %x\n",m_Channels);
+                step = 3;
+            }
+
+            case 3: //截取通道长度
+            {
+                t_DataValue channellen;
+                channellen.Data.HIGH_BYTE = temp[5];
+                channellen.Data.LOW_BYTE = temp[6];
+                m_ChannelsLeg = channellen.value;
+                m_DotNum = temp[5]*0xffff+temp[6];//从数据帧中获取的点数
+                m_DisplayDotNum = (nDataCount-19)/(2*m_Channels);//实际点数
+                qDebug("m_ChannelsLeg = %d, m_DotNum = %d, m_DisplayDotNum=%d\n",m_ChannelsLeg,m_DotNum,m_DisplayDotNum);
+                step = 4;
+            }
+
+            case 4: //截取坐标数据
+            {
+                int pos = 7;
+                t_DataValue dotvalue;
+                double tmp[m_Channels];
+                int nValueCount = (nDataCount-19);
+                qDebug("A Frame Value Count:%d\n",nValueCount);
+                for(int n=0;n<m_DisplayDotNum;n++)
+                {
+                    for(int m=0;m<m_Channels;m++)//通道的第一个点
+                    {
+                        dotvalue.Data.HIGH_BYTE = temp[pos++];
+                        dotvalue.Data.LOW_BYTE = temp[pos++];
+                        tmp[m] = (double)dotvalue.value;
+                    }
+                    m_Channel1_y[n] = tmp[0];
+                    m_Channel2_y[n] = tmp[1];
+                    m_Channel3_y[n] = tmp[2];
+                    m_Channel4_y[n] = tmp[3];
+                    m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
+                }
+            }
             break;
+
+            default:
+                break;
+        }
+        m_AnalysisBuf.clear();
+    }
+    else
+    {
+        qDebug("Invalid Data Frame,Get More\n");
+        m_AnalysisBuf.append(str);
     }
 
     return;
