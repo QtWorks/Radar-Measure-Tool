@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     for(int i=0;i<256;i++)
     {
         x[i]=i-127;
-        y[i]=5*sin(x[i]);
+        y[i]=0;//5*sin(x[i]);
     }
     Pen.setWidth(1);
     Pen.setColor(Qt::green);
@@ -158,8 +158,8 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
     index = ui->PointNumLineEdit->displayText().toInt();
     pSetting->setValue("DisplayDotsNum",index);
 
-    pAnalysis->AnalysisRecvData();
-    ShowWave();
+    //pAnalysis->AnalysisRecvData();
+    //ShowWave();
 
     return;
 }
@@ -273,7 +273,8 @@ void MainWindow::ReceiveData()
 {
     QString RecDataAscii;
     pCom->SerialRecData(&RecDataAscii);
-    pAnalysis->AnalysisRecvData();
+    pAnalysis->AnalysisRecvData(RecDataAscii);
+    //qDebug()<<RecDataAscii;
     ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
     ShowWave();
 

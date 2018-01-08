@@ -30,7 +30,7 @@ public:
     TAnalysis();
     ~TAnalysis();
 
-    void AnalysisRecvData();//协议数据解析
+    void AnalysisRecvData(QString &str);//协议数据解析
     bool uStrcmp(unsigned char *str1,char *str2);
     unsigned char HexToValue(QString s);
 
