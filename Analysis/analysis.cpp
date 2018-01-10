@@ -51,32 +51,25 @@ void TAnalysis::AnalysisRecvData(QString &str)
     QString str(DataArray);
     */
 
-    QString StartBytes = "E4 2C E4 2C ";
+    QString StartBytes = "E4 2C E4 2C";
     QString StopBytes = "E4 8B E4 8B ";
-    QString SSConnect="E4 8B E4 8B E4 2C E4 2C";
-    if(m_AnalysisBuf.contains(SSConnect))
+    if(str.startsWith(StartBytes)&&str.endsWith(StopBytes))
     {
-         m_AnalysisBuf.section(StopBytes,1,1);
-    }
-
-    if(m_AnalysisBuf.contains(StartBytes)&&m_AnalysisBuf.contains(StopBytes))
-    {
-        if(m_AnalysisBuf.startsWith(StartBytes))
-        {
             qDebug("Get a valid Frame!\n");
-            qDebug()<<m_AnalysisBuf;
-            int nFrameLen = m_AnalysisBuf.length();
+            //qDebug()<<m_AnalysisBuf;
+
+            int nFrameLen = str.length();
             qDebug("A Frame Length=%d\n",nFrameLen);
             unsigned char temp[nFrameLen];
             int nDataCount=0;
+
             for(int i=0;i<nFrameLen;i+=3)
             {
-                QString st = m_AnalysisBuf.mid(i,2);//从i开始截取2个字符
+                QString st = str.mid(i,2);//从i开始截取2个字符
                 temp[nDataCount++] = HexToValue(st);//将hex字符转成数字值
-                //printf("%x,",temp[nDataCount-1]);
             }
             qDebug("A Frame Data Counts:%d\n",nDataCount);
-            m_AnalysisBuf.clear();
+            str.clear();
             switch (char step=0)
             {
                 case 0://截取起始字节
@@ -153,17 +146,10 @@ void TAnalysis::AnalysisRecvData(QString &str)
                 default:
                     break;
             }
-        }
-        /*else
-        {
-            m_AnalysisBuf.section(StartBytes,-1,-1);
-        }*/
     }
     else
     {
-        //qDebug("Invalid Data Frame,Get More\n");
-        m_AnalysisBuf.append(str);
-        //qDebug()<<m_AnalysisBuf;
+        str.clear();
     }
 
     return;

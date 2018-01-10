@@ -8,11 +8,22 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle("CECPort雷达调试助手");
     setWindowIcon(QIcon(":/new/images/Resouce/image.png"));
 
+    pTimer = new QTimer();
+    pTimer->setInterval(100);
+    //pTimer->start();
+
+    connect(pTimer,SIGNAL(timeout()),this,SLOT(RecvWaveData()));
+
+    m_AnalysisFlag =false;
+    m_AnalysisSize = 0;
+
     PATH = "config.xml";
     pSetting = new QSettings(PATH, QSettings::IniFormat);
     index=0;
     pCom = new TCom;
     pAnalysis = new TAnalysis;
+
+    OperateFlag = false;
 
     //开始按钮样式
     m_StartButtonState = false;
@@ -140,6 +151,7 @@ MainWindow::~MainWindow()
     delete pAnalysis;
     delete ui;
     delete pSetting;
+    delete pTimer;
 }
 
 void MainWindow::on_RecClearPushButton_clicked()
@@ -158,8 +170,7 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
     index = ui->PointNumLineEdit->displayText().toInt();
     pSetting->setValue("DisplayDotsNum",index);
 
-    //pAnalysis->AnalysisRecvData();
-    //ShowWave();
+    qDebug()<<m_AnalysisData;
 
     return;
 }
@@ -204,6 +215,7 @@ void MainWindow::on_StartPushButton_clicked()
             return;
         }
         connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
+        pTimer->start();
         //connect(pCom->pSerialCom,SIGNAL(readyRead()),this,SLOT(ShowWave()));
         m_StartButtonState = true;
         ui->StartPushButton->setText("STOP");
@@ -271,12 +283,10 @@ void MainWindow::on_AsciiSendCheckBox_toggled(bool checked)
 
 void MainWindow::ReceiveData()
 {
-    QString RecDataAscii;
-    pCom->SerialRecData(&RecDataAscii);
-    pAnalysis->AnalysisRecvData(RecDataAscii);
-    //qDebug()<<RecDataAscii;
-    ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
-    ShowWave();
+    //QString RecDataAscii;
+    //pCom->SerialRecData(&RecDataAscii);
+    //ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
+    //pAnalysis->AnalysisRecvData(RecDataAscii);
 
     return;
 }
@@ -333,6 +343,47 @@ void MainWindow::ShowWave()
 
     ui->ChannelWidget->graph(3)->setData(x,y);
     ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::RecvWaveData()
+{
+    qDebug()<<"timeout";
+
+    if(m_StartButtonState)
+    {
+       QString RecDataAscii;
+       pCom->SerialRecData(&RecDataAscii);
+
+       if(!OperateFlag)
+       {
+               if(!RecDataAscii.isEmpty())
+               {
+                   pTimer->stop();
+                   pTimer->setInterval(800);
+                   pTimer->start();
+                   OperateFlag=true;
+                   RecDataAscii.clear();
+                   return;
+               }
+       }
+
+
+       if( RecDataAscii.contains("E4 2C E4 2C") )
+       {
+            m_AnalysisData = RecDataAscii.section("E4 2C E4 2C",1,1);
+            m_AnalysisData.prepend("E4 2C E4 2C");
+            if(RecDataAscii.contains("E4 8B E4 8B"))
+            {
+                 //qDebug()<<m_AnalysisData;
+                 pAnalysis->AnalysisRecvData(m_AnalysisData);
+                 ShowWave();
+            }
+       }
+
+    }
+
 
     return;
 }

@@ -6,6 +6,7 @@
 #include "Communicate/Com.h"
 #include "Analysis/analysis.h"
 #include "Qcustomplot/qcustomplot.h"
+#include "qtimer.h"
 
 namespace Ui {
 class MainWindow;
@@ -37,6 +38,8 @@ private slots:
     void ReceiveData();
     void ShowWave();
 
+    void RecvWaveData();
+
 private:
     Ui::MainWindow *ui;
     TCom *pCom;//串口
@@ -46,6 +49,14 @@ private:
     QString PATH;
     QSettings *pSetting;
     int index;
+    QString m_AnalysisData;
+    bool m_AnalysisFlag;
+    int m_AnalysisSize;
+
+    QTimer *pTimer;
+
+    unsigned char OperateFlag;
 };
 
 #endif // MAINWINDOW_H
+
