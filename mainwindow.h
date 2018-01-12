@@ -7,6 +7,7 @@
 #include "Analysis/analysis.h"
 #include "Qcustomplot/qcustomplot.h"
 #include "qtimer.h"
+#include "QPainter"
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +20,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    void ShowWave();
+    void ShowSpeed();
 
 private slots:
     //按钮处理
@@ -35,27 +39,26 @@ private slots:
     void on_AsciiSendCheckBox_toggled(bool checked);
 
     //接收数据
-    void ReceiveData();
-    void ShowWave();
-
-    void RecvWaveData();
+    void ReceiveData(); //串口数据触发
+    void RecvWaveData(); //定时器触发
+    void MeasurePoint(QMouseEvent *pEvent); //鼠标事件触发
+    void MeasureSpeed(QMouseEvent *pEvent);
 
 private:
+    int index;
+    bool m_StartButtonState;//开始按钮标志
+    unsigned char OperateFlag;
+    int m_XScanRange;
+    int m_YScanRange;
+    int m_DisplayPoint;
+
     Ui::MainWindow *ui;
     TCom *pCom;//串口
     TAnalysis *pAnalysis;
-    bool m_StartButtonState;//开始按钮标志
-    QPen Pen;//画笔
     QString PATH;
     QSettings *pSetting;
-    int index;
-    QString m_AnalysisData;
-    bool m_AnalysisFlag;
-    int m_AnalysisSize;
-
     QTimer *pTimer;
-
-    unsigned char OperateFlag;
+    QString m_AnalysisData;
 };
 
 #endif // MAINWINDOW_H

@@ -409,7 +409,7 @@
       </rect>
      </property>
      <property name="cursor">
-      <cursorShape>CrossCursor</cursorShape>
+      <cursorShape>ArrowCursor</cursorShape>
      </property>
      <property name="mouseTracking">
       <bool>true</bool>
@@ -484,7 +484,7 @@
      <x>0</x>
      <y>0</y>
      <width>1101</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="FileMenu">

@@ -6,23 +6,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle("CECPort雷达调试助手");
-    setWindowIcon(QIcon(":/new/images/Resouce/image.png"));
-
-    pTimer = new QTimer();
-    pTimer->setInterval(100);
-    //pTimer->start();
-
-    connect(pTimer,SIGNAL(timeout()),this,SLOT(RecvWaveData()));
-
-    m_AnalysisFlag =false;
-    m_AnalysisSize = 0;
+    setWindowIcon(QIcon(":/new/images/Resouce/image.png")); //设置图标
 
     PATH = "config.xml";
     pSetting = new QSettings(PATH, QSettings::IniFormat);
     index=0;
     pCom = new TCom;
     pAnalysis = new TAnalysis;
-
     OperateFlag = false;
 
     //开始按钮样式
@@ -73,10 +63,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ParityBitComboBox->setCurrentIndex(0);
     index = pSetting->value("XRange").toInt();
     ui->XRangeLineEdit->setText(QString::number(index,10));
+    m_XScanRange = index;
     index = pSetting->value("YRange").toInt();
     ui->YRangeLineEdit->setText(QString::number(index,10));
+    m_YScanRange = index;
     index = pSetting->value("DisplayDotsNum").toInt();
     ui->PointNumLineEdit->setText(QString::number(index,10));
+    m_DisplayPoint = index;
 
     //复选框默认设置
     ui->HEXRecCheckBox->setChecked(true);
@@ -117,32 +110,27 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ResultWidget->setBackground(qBrushColor);
     ui->ResultWidget->legend->setVisible(false);
 
-    ui->ResultWidget->xAxis->setRange(-127,127);
+    ui->ResultWidget->xAxis->setRange(m_XScanRange,0);
     ui->ResultWidget->xAxis->setLabelColor(QColor(0,160,230));
     ui->ResultWidget->xAxis->setTickLabelColor(Qt::white);
     ui->ResultWidget->xAxis->setBasePen(QColor(32,178,170));
     ui->ResultWidget->xAxis->setTickPen(QColor(255,165,0));
 
-    ui->ResultWidget->yAxis->setRange(-10,10);
+    ui->ResultWidget->yAxis->setRange(-(m_YScanRange),m_YScanRange);
     ui->ResultWidget->yAxis->setLabelColor(QColor(0,160,230));
     ui->ResultWidget->yAxis->setTickLabelColor(Qt::white);
     ui->ResultWidget->yAxis->setBasePen(QColor(32,178,170));
     ui->ResultWidget->yAxis->setTickPen(QColor(255,165,0));
-
     ui->ResultWidget->addGraph();
 
-    QVector<double> x(256),y(256);
-    for(int i=0;i<256;i++)
-    {
-        x[i]=i-127;
-        y[i]=0;//5*sin(x[i]);
-    }
-    Pen.setWidth(1);
-    Pen.setColor(Qt::green);
-    ui->ResultWidget->graph(0)->setPen(Pen);
-    ui->ResultWidget->graph(0)->setData(x,y);
-    ui->ResultWidget->replot();
+    pTimer = new QTimer();
+    pTimer->setInterval(100);
+    //pTimer->start();
+    connect(pTimer,SIGNAL(timeout()),this,SLOT(RecvWaveData()));
+    connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasurePoint(QMouseEvent*)));
+    connect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureSpeed(QMouseEvent*)));
 
+    return;
 }
 
 MainWindow::~MainWindow()
@@ -165,13 +153,17 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
 {
     index = ui->XRangeLineEdit->displayText().toInt();
     pSetting->setValue("XRange",index);
+    m_XScanRange = index;
     index = ui->YRangeLineEdit->displayText().toInt();
     pSetting->setValue("YRange",index);
+    m_YScanRange = index;
     index = ui->PointNumLineEdit->displayText().toInt();
     pSetting->setValue("DisplayDotsNum",index);
+    m_DisplayPoint = index;
 
-    qDebug()<<m_AnalysisData;
-
+    ui->ResultWidget->xAxis->setRange(-(m_XScanRange),m_XScanRange);
+    ui->ResultWidget->yAxis->setRange(-(m_YScanRange),m_YScanRange);
+    ui->ResultWidget->replot();
     return;
 }
 
@@ -227,6 +219,7 @@ void MainWindow::on_StartPushButton_clicked()
         pCom->SerialClose();
         ui->StartPushButton->setText("START");
         ui->SignalPushButton->setStyleSheet("background-color:rgb(255,50,50)");
+        pTimer->stop();
     }
 
     return;
@@ -278,15 +271,12 @@ void MainWindow::on_AsciiSendCheckBox_toggled(bool checked)
     pCom->m_AsciiSendFlag = checked;
 
     return;
-
 }
 
 void MainWindow::ReceiveData()
 {
     //QString RecDataAscii;
     //pCom->SerialRecData(&RecDataAscii);
-    //ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
-    //pAnalysis->AnalysisRecvData(RecDataAscii);
 
     return;
 }
@@ -301,10 +291,10 @@ void MainWindow::ShowWave()
         x[i] = pAnalysis->m_Channel_x[i];
         y[i] = pAnalysis->m_Channel1_y[i];
     }
+    QPen Pen;
     Pen.setWidth(1);
     Pen.setColor(Qt::green);
     ui->ChannelWidget->graph(0)->setPen(Pen);
-
     ui->ChannelWidget->graph(0)->setData(x,y);
     ui->ChannelWidget->replot();
 
@@ -316,7 +306,6 @@ void MainWindow::ShowWave()
     Pen.setWidth(1);
     Pen.setColor(Qt::blue);
     ui->ChannelWidget->graph(1)->setPen(Pen);
-
     ui->ChannelWidget->graph(1)->setData(x,y);
     ui->ChannelWidget->replot();
 
@@ -340,22 +329,20 @@ void MainWindow::ShowWave()
     Pen.setWidth(1);
     Pen.setColor(Qt::red);
     ui->ChannelWidget->graph(3)->setPen(Pen);
-
     ui->ChannelWidget->graph(3)->setData(x,y);
     ui->ChannelWidget->replot();
+
 
     return;
 }
 
 void MainWindow::RecvWaveData()
 {
-    qDebug()<<"timeout";
-
     if(m_StartButtonState)
     {
        QString RecDataAscii;
        pCom->SerialRecData(&RecDataAscii);
-
+       ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
        if(!OperateFlag)
        {
                if(!RecDataAscii.isEmpty())
@@ -369,7 +356,6 @@ void MainWindow::RecvWaveData()
                }
        }
 
-
        if( RecDataAscii.contains("E4 2C E4 2C") )
        {
             m_AnalysisData = RecDataAscii.section("E4 2C E4 2C",1,1);
@@ -379,13 +365,82 @@ void MainWindow::RecvWaveData()
                  //qDebug()<<m_AnalysisData;
                  pAnalysis->AnalysisRecvData(m_AnalysisData);
                  ShowWave();
+                 ShowSpeed();
             }
        }
 
     }
 
-
     return;
 }
 
+void MainWindow::MeasurePoint(QMouseEvent *pEvent)
+{
+    int x_pose = pEvent->pos().x();
+    int y_pose = pEvent->pos().y();
+    float x_val = ui->ChannelWidget->xAxis->pixelToCoord(x_pose);
+    float y_val = ui->ChannelWidget->yAxis->pixelToCoord(y_pose);
+    QPen Pen;
+    Pen.setColor(Qt::white);
+    Pen.setWidth(1);
+    Pen.setStyle(Qt::DashLine);
+
+    QVector<double> x(0x1fffe),y(0x1fffe);
+    for(long int i=0;i<0x1fffe;i++)
+    {
+        x[i] = (double)x_val;
+        y[i] = (double)(i-0xffff);
+    }
+    ui->ChannelWidget->addGraph();
+    ui->ChannelWidget->graph(pAnalysis->m_Channels)->setPen(Pen);
+    ui->ChannelWidget->graph(pAnalysis->m_Channels)->setData(x,y);
+    ui->ChannelWidget->replot();
+
+    //qDebug("x:%f,y:%f\n",x_val,y_val);
+    return;
+}
+
+void MainWindow::MeasureSpeed(QMouseEvent *pEvent)
+{
+    int x_pose = pEvent->pos().x();
+    int y_pose = pEvent->pos().y();
+    float x_val = ui->ResultWidget->xAxis->pixelToCoord(x_pose);
+    float y_val = ui->ResultWidget->yAxis->pixelToCoord(y_pose);
+    QPen Pen;
+    Pen.setColor(Qt::white);
+    Pen.setWidth(1);
+    Pen.setStyle(Qt::DashLine);
+
+    QVector<double> x(m_YScanRange*2),y(m_YScanRange*2);
+    for(long int i=0;i<(m_YScanRange*2);i++)
+    {
+        x[i] = (double)x_val;
+        y[i] = (double)(i-m_YScanRange);
+    }
+    ui->ResultWidget->addGraph();
+    ui->ResultWidget->graph(1)->setPen(Pen);
+    ui->ResultWidget->graph(1)->setData(x,y);
+    ui->ResultWidget->replot();
+
+    //qDebug("x:%f,y:%f\n",x_val,y_val);
+    return;
+}
+
+void MainWindow::ShowSpeed()
+{
+    qDebug("%f,%f,%f,%f\n",pAnalysis->m_PositiveSpeed,pAnalysis->m_PositiveAmp,pAnalysis->m_NegativeSpeed,pAnalysis->m_NegativeAmp);
+    QVector<double> x(1),y(1);
+    QPen Pen;
+    Pen.setWidth(2);
+    x[0]=0;
+    y[0]=pAnalysis->m_NegativeSpeed;
+    if(y[0]>0)
+    {
+        Pen.setColor(Qt::green);
+        ui->ResultWidget->graph(0)->setPen(Pen);
+        ui->ResultWidget->graph(0)->setData(x,y);
+    }
+
+    return;
+}
 

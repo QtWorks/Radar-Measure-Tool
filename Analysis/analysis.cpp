@@ -113,19 +113,20 @@ void TAnalysis::AnalysisRecvData(QString &str)
                     channellen.Data.HIGH_BYTE = temp[5];
                     channellen.Data.LOW_BYTE = temp[6];
                     m_ChannelsLeg = channellen.value;
-                    m_DotNum = temp[5]*0xffff+temp[6];//从数据帧中获取的点数
-                    m_DisplayDotNum = (nDataCount-19)/(2*m_Channels);//实际点数
-                    qDebug("m_ChannelsLeg = %d, m_DotNum = %d, m_DisplayDotNum=%d\n",m_ChannelsLeg,m_DotNum,m_DisplayDotNum);
+                    qDebug("m_ChannelsLeg = %d\n",m_ChannelsLeg);
                     step = 4;
                 }
 
                 case 4: //截取坐标数据
                 {
+                    int nValueCount = (nDataCount-19);
+                    qDebug("A Frame Value Count:%d\n",nValueCount);
+                    m_DotNum = temp[5]*0xffff+temp[6];//从数据帧中获取的点数
+                    m_DisplayDotNum = nValueCount/(2*m_Channels);//实际点数
+                    qDebug("m_DotNum = %d, m_DisplayDotNum=%d\n",m_DotNum,m_DisplayDotNum);
                     int pos = 7;
                     t_DataValue dotvalue;
                     double tmp[m_Channels];
-                    int nValueCount = (nDataCount-19);
-                    qDebug("A Frame Value Count:%d\n",nValueCount);
                     for(int n=0;n<m_DisplayDotNum;n++)
                     {
                         for(int m=0;m<m_Channels;m++)//通道的第一个点
@@ -140,6 +141,26 @@ void TAnalysis::AnalysisRecvData(QString &str)
                         m_Channel4_y[n] = tmp[3];
                         m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
                     }
+
+                    step = 5;
+                }
+
+                case 5:
+                {
+                    //截取速度值
+                    t_DataValue tValue;
+                    tValue.Data.HIGH_BYTE = temp[nDataCount-12];
+                    tValue.Data.LOW_BYTE = temp[nDataCount-11];
+                    m_PositiveSpeed = (double)tValue.value;//取得正向速度
+                    tValue.Data.HIGH_BYTE = temp[nDataCount-10];
+                    tValue.Data.LOW_BYTE = temp[nDataCount-9];
+                    m_PositiveAmp = (double)tValue.value;//取得正向幅度
+                    tValue.Data.HIGH_BYTE = temp[nDataCount-8];
+                    tValue.Data.LOW_BYTE = temp[nDataCount-7];
+                    m_NegativeSpeed = (double)tValue.value;//取得负向速度
+                    tValue.Data.HIGH_BYTE = temp[nDataCount-6];
+                    tValue.Data.LOW_BYTE = temp[nDataCount-5];
+                    m_NegativeAmp = (double)tValue.value;//取得负向幅度
                 }
                 break;
 
