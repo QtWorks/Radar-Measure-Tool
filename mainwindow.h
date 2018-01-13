@@ -8,6 +8,7 @@
 #include "Qcustomplot/qcustomplot.h"
 #include "qtimer.h"
 #include "QPainter"
+#include "QToolTip"
 
 namespace Ui {
 class MainWindow;
@@ -46,11 +47,15 @@ private slots:
 
 private:
     int index;
+    double Value;
     bool m_StartButtonState;//开始按钮标志
     unsigned char OperateFlag;
     int m_XScanRange;
+    double m_XStart;
+    double m_XStop;
     int m_YScanRange;
     int m_DisplayPoint;
+    double m_Moment;
 
     Ui::MainWindow *ui;
     TCom *pCom;//串口
@@ -59,6 +64,7 @@ private:
     QSettings *pSetting;
     QTimer *pTimer;
     QString m_AnalysisData;
+    QVector<double> Speed_X,Speed_Y;
 };
 
 #endif // MAINWINDOW_H

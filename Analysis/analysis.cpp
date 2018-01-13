@@ -7,6 +7,7 @@ TAnalysis::TAnalysis()
 {
     m_Channels = 4;
     m_ChannelsLeg = 256;
+    m_DisplayDotNum = 255;
     m_Channel_x = new double   [0xffff];
     m_Channel1_y = new double  [0xffff];
     m_Channel2_y = new double  [0xffff];
