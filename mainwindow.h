@@ -32,17 +32,20 @@ private slots:
     void on_StartPushButton_clicked();
     void on_SaveScanRangePushButton_clicked();
     void on_SaveSerialCfgPushButton_clicked();
+   // void on_ClearWavePushButton_clicked();
+   // void on_ClearSpeedPushButton_clicked();
 
     //复选框处理
     void on_HEXRecCheckBox_toggled(bool checked);
     void on_AsciiRecCheckBox_toggled(bool checked);
     void on_HEXSendCheckBox_toggled(bool checked);
     void on_AsciiSendCheckBox_toggled(bool checked);
+    void on_LegendCheckBox_toggled(bool checked);
 
     //接收数据
     void ReceiveData(); //串口数据触发
     void RecvWaveData(); //定时器触发
-    void MeasurePoint(QMouseEvent *pEvent); //鼠标事件触发
+    void MeasurePoint(QMouseEvent *pEvent);//鼠标事件触发
     void MeasureSpeed(QMouseEvent *pEvent);
 
 private:
@@ -56,6 +59,8 @@ private:
     int m_YScanRange;
     int m_DisplayPoint;
     double m_Moment;
+    bool FrameStartFlag;
+    double m_DataRange;
 
     Ui::MainWindow *ui;
     TCom *pCom;//串口
@@ -64,7 +69,8 @@ private:
     QSettings *pSetting;
     QTimer *pTimer;
     QString m_AnalysisData;
-    QVector<double> Speed_X,Speed_Y;
+    QString m_SubAnalysisData;
+    QVector<double> Speed_X,Speed_Y,Speed_NY;
 };
 
 #endif // MAINWINDOW_H

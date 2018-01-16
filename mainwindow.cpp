@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     OperateFlag = false;
 
     m_Moment = 0;
+    FrameStartFlag =false;
 
     //开始按钮样式
     m_StartButtonState = false;
@@ -74,6 +75,8 @@ MainWindow::MainWindow(QWidget *parent) :
     index = pSetting->value("YRange").toInt();
     ui->YRangeLineEdit->setText(QString::number(index,10));
     m_YScanRange = index;//y扫描范围
+    Value = pSetting->value("DataRange").toDouble();
+    ui->DataRangeLineEdit->setText(QString::number(Value,'g',6));
 
     m_XStart = 0;
     m_XStop = m_XStart+(double)m_XScanRange;
@@ -87,10 +90,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //波形图坐标设置
     //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
     //ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+    QPen Pen;
+    Pen.setWidth(1);
+    Pen.setColor(Qt::white);
     QBrush qBrushColor(QColor(50,50,50));
     ui->ChannelWidget->setBackground(qBrushColor);
     ui->ChannelWidget->legend->setVisible(false);
-    //ui->ChannelWidget->legend->setBrush(QColor(50,50,50,0));//图例透明
+    ui->ChannelWidget->legend->setBrush(QColor(50,50,50,0));//图例透明
+    ui->ChannelWidget->legend->setBorderPen(Pen);
+    ui->ChannelWidget->legend->setTextColor(Qt::white);
 
     ui->ChannelWidget->xAxis->setRange(-127,127);
     ui->ChannelWidget->xAxis->setLabelColor(QColor(0,160,230));
@@ -99,7 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ChannelWidget->xAxis->setTickPen(QColor(255,165,0));
     ui->ChannelWidget->xAxis->setSubTicks(true);
 
-    ui->ChannelWidget->yAxis->setRange(-65535,65535);
+    ui->ChannelWidget->yAxis->setRange(-(m_DataRange),m_DataRange);
     ui->ChannelWidget->yAxis->setLabelColor(QColor(0,160,230));
     ui->ChannelWidget->yAxis->setTickLabelColor(Qt::white);
     ui->ChannelWidget->yAxis->setBasePen(QColor(32,178,170));
@@ -113,9 +121,13 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         ui->ChannelWidget->addGraph();
     }
+    ui->ChannelWidget->addGraph();//增加光标图层
 
     ui->ResultWidget->setBackground(qBrushColor);
     ui->ResultWidget->legend->setVisible(false);
+    ui->ResultWidget->legend->setBrush(QColor(50,50,50,0));//图例透明
+    ui->ResultWidget->legend->setBorderPen(Pen);
+    ui->ResultWidget->legend->setTextColor(Qt::white);
 
     ui->ResultWidget->xAxis->setRange(m_XStart,m_XStop);
     ui->ResultWidget->xAxis->setLabelColor(QColor(0,160,230));
@@ -128,7 +140,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ResultWidget->yAxis->setTickLabelColor(Qt::white);
     ui->ResultWidget->yAxis->setBasePen(QColor(32,178,170));
     ui->ResultWidget->yAxis->setTickPen(QColor(255,165,0));
-    ui->ResultWidget->addGraph();
+    ui->ResultWidget->addGraph();//Positive
+    ui->ResultWidget->addGraph();//Nagative
+    ui->ResultWidget->addGraph();//增加光标图层
 
     pTimer = new QTimer();
     pTimer->setInterval(100);
@@ -136,6 +150,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(pTimer,SIGNAL(timeout()),this,SLOT(RecvWaveData()));
     connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasurePoint(QMouseEvent*)));
     connect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureSpeed(QMouseEvent*)));
+
+    /*
+    Speed_X=QVector<double>(m_DisplayPoint);
+    Speed_Y=QVector<double>(m_DisplayPoint);
+    Speed_NY=QVector<double>(m_DisplayPoint);
+    for(int k=0;k<m_DisplayPoint;k++)
+    {
+        Speed_X<<0;
+        Speed_Y<<0;
+        Speed_NY<<0;
+    }*/
 
     return;
 }
@@ -168,9 +193,16 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
     pSetting->setValue("DisplayDotsNum",index);
     m_DisplayPoint = index;
 
+    Value = ui->DataRangeLineEdit->displayText().toDouble();
+    pSetting->setValue("DataRange",Value);
+    m_DataRange = Value;
+
     ui->ResultWidget->xAxis->setRange((m_XStop-(double)m_XScanRange),m_XStop);
     ui->ResultWidget->yAxis->setRange(-(m_YScanRange),m_YScanRange);
     ui->ResultWidget->replot();
+    ui->ChannelWidget->yAxis->setRange(-(m_DataRange),m_DataRange);
+    ui->ChannelWidget->replot();
+
     return;
 }
 
@@ -200,6 +232,10 @@ void MainWindow::on_SendPushButton_clicked()
 
 void MainWindow::on_StartPushButton_clicked()
 {
+    m_AnalysisData.clear();
+    m_SubAnalysisData.clear();
+    FrameStartFlag=false;
+
     if(!m_StartButtonState)
     {
         QString PortName = ui->PortComboBox->currentText();//获取当前串口号字符串
@@ -214,7 +250,7 @@ void MainWindow::on_StartPushButton_clicked()
             return;
         }
         connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
-        pTimer->start();
+        //pTimer->start();
         //connect(pCom->pSerialCom,SIGNAL(readyRead()),this,SLOT(ShowWave()));
         m_StartButtonState = true;
         ui->StartPushButton->setText("STOP");
@@ -226,8 +262,31 @@ void MainWindow::on_StartPushButton_clicked()
         pCom->SerialClose();
         ui->StartPushButton->setText("START");
         ui->SignalPushButton->setStyleSheet("background-color:rgb(255,50,50)");
-        pTimer->stop();
+        //pTimer->stop();
     }
+
+    return;
+}
+
+/*void MainWindow::on_ClearWavePushButton_clicked()
+{
+    ui->ChannelWidget->clearGraphs();
+
+}
+
+void MainWindow::on_ClearSpeedPushButton_clicked()
+{
+    ui->ResultWidget->clearGraphs();
+
+    return;
+}*/
+
+void MainWindow::on_LegendCheckBox_toggled(bool checked)
+{
+    ui->ChannelWidget->legend->setVisible(checked);
+    ui->ChannelWidget->replot();
+    ui->ResultWidget->legend->setVisible(checked);
+    ui->ResultWidget->replot();
 
     return;
 }
@@ -282,8 +341,38 @@ void MainWindow::on_AsciiSendCheckBox_toggled(bool checked)
 
 void MainWindow::ReceiveData()
 {
-    //QString RecDataAscii;
-    //pCom->SerialRecData(&RecDataAscii);
+    disconnect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
+
+    QString RecDataAscii;
+    pCom->SerialRecData(&RecDataAscii);
+    ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
+    m_AnalysisData+=RecDataAscii;
+    if(m_AnalysisData.contains("E4 2C E4 2C")&&(!FrameStartFlag))
+    {
+        FrameStartFlag=true;
+    }
+    if(FrameStartFlag)
+    {
+        m_SubAnalysisData+=RecDataAscii;
+        if(m_SubAnalysisData.contains("E4 8B E4 8B E4 2C E4 2C"))
+        {
+            int i = m_AnalysisData.indexOf("E4 2C E4 2C",0);
+            int j = m_AnalysisData.indexOf("E4 2C E4 2C",(i+12));
+            QString str = m_AnalysisData.mid(i,(j-i));
+            //qDebug("i=%d,j=%d,j-i=%d\n",i,j,(j-i));
+            //qDebug()<<str;
+            pAnalysis->AnalysisRecvData(str);
+            ShowWave();
+            ShowSpeed();
+            qDebug("moment:%f\n",(double)m_XScanRange/(double)m_DisplayPoint);
+            m_Moment += ((double)m_XScanRange/(double)m_DisplayPoint);
+            m_AnalysisData.clear();
+            m_SubAnalysisData.clear();
+            FrameStartFlag=false;
+        }
+    }
+
+    connect(pCom->pSerialCom, SIGNAL(readyRead()), this, SLOT(ReceiveData()));//连接串口到显示区
 
     return;
 }
@@ -303,6 +392,7 @@ void MainWindow::ShowWave()
     Pen.setColor(Qt::green);
     ui->ChannelWidget->graph(0)->setPen(Pen);
     ui->ChannelWidget->graph(0)->setData(x,y);
+    ui->ChannelWidget->graph(0)->setName("First");
     ui->ChannelWidget->replot();
 
     for(int j=0;j<nSize;j++)
@@ -314,6 +404,7 @@ void MainWindow::ShowWave()
     Pen.setColor(Qt::blue);
     ui->ChannelWidget->graph(1)->setPen(Pen);
     ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("Second");
     ui->ChannelWidget->replot();
 
     for(int k=0;k<nSize;k++)
@@ -324,8 +415,8 @@ void MainWindow::ShowWave()
     Pen.setWidth(1);
     Pen.setColor(Qt::yellow);
     ui->ChannelWidget->graph(2)->setPen(Pen);
-
     ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("third");
     ui->ChannelWidget->replot();
 
     for(int l=0;l<nSize;l++)
@@ -337,8 +428,8 @@ void MainWindow::ShowWave()
     Pen.setColor(Qt::red);
     ui->ChannelWidget->graph(3)->setPen(Pen);
     ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("Forth");
     ui->ChannelWidget->replot();
-
 
     return;
 }
@@ -400,16 +491,22 @@ void MainWindow::MeasurePoint(QMouseEvent *pEvent)
         x[i] = (double)x_val;
         y[i] = (double)(i-0xffff);
     }
-    ui->ChannelWidget->addGraph();
-    ui->ChannelWidget->graph(pAnalysis->m_Channels)->setPen(Pen);
-    ui->ChannelWidget->graph(pAnalysis->m_Channels)->setData(x,y);
+
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Legend");
     ui->ChannelWidget->replot();
 
     int n=0;
-    n = ((unsigned short)x_val+(pAnalysis->m_ChannelsLeg/2-1))*pAnalysis->m_DisplayDotNum/pAnalysis->m_ChannelsLeg;
-
+    n = (x_val+(pAnalysis->m_ChannelsLeg/2-1))*pAnalysis->m_DisplayDotNum/pAnalysis->m_ChannelsLeg;
     //qDebug("x:%f,y:%f\n",x_val,y_val);
     //qDebug("n=%d\n",n);
+
+    ui->Ch1LineEdit->setText(QString::number(pAnalysis->m_Channel1_y[n],'g',6));
+    ui->Ch2LineEdit->setText(QString::number(pAnalysis->m_Channel2_y[n],'g',6));
+    ui->Ch3LineEdit->setText(QString::number(pAnalysis->m_Channel3_y[n],'g',6));
+    ui->Ch4lineEdit->setText(QString::number(pAnalysis->m_Channel4_y[n],'g',6));
+
     return;
 }
 
@@ -430,13 +527,15 @@ void MainWindow::MeasureSpeed(QMouseEvent *pEvent)
         x[i] = (double)x_val;
         y[i] = (double)(i-m_YScanRange);
     }
-    ui->ResultWidget->addGraph();
-    ui->ResultWidget->graph(1)->setPen(Pen);
-    ui->ResultWidget->graph(1)->setData(x,y);
+    ui->ResultWidget->graph(2)->setPen(Pen);
+    ui->ResultWidget->graph(2)->setData(x,y);
+    ui->ResultWidget->graph(2)->setName("Legend");
     ui->ResultWidget->replot();
 
     int n=0;
-    n = ((int)x_val-m_XStart)/m_XScanRange*m_DisplayPoint;
+    n = (x_val-m_XStart)/m_XScanRange*m_DisplayPoint;
+    ui->PositiveLineEdit->setText(QString::number(Speed_Y[n],'g',6));
+    ui->NegativeLineEdit->setText(QString::number(Speed_NY[n],'g',6));
 
     //qDebug("x:%f,y:%f\n",x_val,y_val);
     //qDebug("n=%d\n",n);
@@ -457,9 +556,9 @@ void MainWindow::ShowSpeed()
 
     QPen Pen;
     Pen.setWidth(2);
-    //m_Moment += 0.5;
     Speed_X<<m_Moment;
-    Speed_Y<<pAnalysis->m_NegativeAmp;
+    Speed_Y<<pAnalysis->m_PositiveSpeed;
+    Speed_NY<<pAnalysis->m_NegativeSpeed;
     if(m_Moment>m_XStop)
     {
         m_XStart++;
@@ -467,11 +566,12 @@ void MainWindow::ShowSpeed()
         ui->ResultWidget->xAxis->setRange(m_XStart,m_XStop);
         ui->ResultWidget->replot();
     }
-    if(pAnalysis->m_NegativeAmp>0)
+    if(pAnalysis->m_PositiveSpeed>0)
     {
         Pen.setColor(Qt::green);
         ui->ResultWidget->graph(0)->setPen(Pen);
         ui->ResultWidget->graph(0)->setData(Speed_X,Speed_Y);
+        ui->ResultWidget->graph(0)->setName("Positive");
         ui->ResultWidget->replot();
     }
     else
@@ -479,7 +579,26 @@ void MainWindow::ShowSpeed()
         Pen.setColor(Qt::red);
         ui->ResultWidget->graph(0)->setPen(Pen);
         ui->ResultWidget->graph(0)->setData(Speed_X,Speed_Y);
+        ui->ResultWidget->graph(0)->setName("Positive");
         ui->ResultWidget->replot();
+    }
+
+    if(pAnalysis->m_NegativeSpeed>0)
+    {
+        Pen.setColor(Qt::green);
+        ui->ResultWidget->graph(1)->setPen(Pen);
+        ui->ResultWidget->graph(1)->setData(Speed_X,Speed_NY);
+        ui->ResultWidget->graph(1)->setName("Negative");
+        ui->ResultWidget->replot();
+    }
+    else
+    {
+        Pen.setColor(Qt::red);
+        ui->ResultWidget->graph(1)->setPen(Pen);
+        ui->ResultWidget->graph(1)->setData(Speed_X,Speed_NY);
+        ui->ResultWidget->graph(1)->setName("Negative");
+        ui->ResultWidget->replot();
+
     }
 
     count++;

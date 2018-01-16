@@ -56,7 +56,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
     QString StopBytes = "E4 8B E4 8B ";
     if(str.startsWith(StartBytes)&&str.endsWith(StopBytes))
     {
-            qDebug("Get a valid Frame!\n");
+            //qDebug("Get a valid Frame!\n");
             //qDebug()<<m_AnalysisBuf;
 
             int nFrameLen = str.length();
