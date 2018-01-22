@@ -48,7 +48,7 @@ void TCom::SerialClose()
 void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, QString *StopBit, QString *ParityBit)
 {
     pSerialCom = new QextSerialPort(*PortName);
-    qDebug("Set Baud Rate:%d\n",(*BaudRate).toInt());
+    //qDebug("Set Baud Rate:%d\n",(*BaudRate).toInt());
     pSerialCom->setBaudRate((BaudRateType)(*BaudRate).toInt());//设置串口波特率
     pSerialCom->setDataBits((DataBitsType)(*Databit).toInt());//设置串口数据位
     switch((*ParityBit).toInt())//设置串口校验位
@@ -58,7 +58,7 @@ void TCom::SerialConfig(QString *PortName,QString *BaudRate, QString *Databit, Q
         case 2:pSerialCom->setParity(PAR_EVEN);break;
         default:pSerialCom->setParity(PAR_NONE);break;
     }
-    qDebug("StopBit=%d\n",(*StopBit).toInt());
+    //qDebug("StopBit=%d\n",(*StopBit).toInt());
     switch((*StopBit).toInt())//设置串口停止位
     {
         case 1:pSerialCom->setStopBits(STOP_1);break;

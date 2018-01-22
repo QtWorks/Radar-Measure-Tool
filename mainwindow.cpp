@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_Moment = 0;
     FrameStartFlag =false;
 
+    m_AnalysisData = "";
+    m_SubAnalysisData = "";
+
     //开始按钮样式
     m_StartButtonState = false;
     ui->StartPushButton->setText("START");
@@ -162,6 +165,14 @@ MainWindow::~MainWindow()
     delete pAnalysis;
     delete ui;
     delete pSetting;
+
+    Speed_NY.clear();
+    Speed_X.clear();
+    Speed_Y.clear();
+
+    m_AnalysisData.clear();
+    m_SubAnalysisData.clear();
+
     //delete pTimer;
 
     return;
@@ -360,7 +371,7 @@ void MainWindow::ReceiveData()
     QString RecDataAscii;
     pCom->SerialRecData(&RecDataAscii);
     ui->RecDataTextBrowser->insertPlainText(RecDataAscii);
-    if(count>1000)
+    if(count>10)
     {
         count=0;
         ui->RecDataTextBrowser->clear();
@@ -528,8 +539,8 @@ void MainWindow::MeasurePoint(QMouseEvent *pEvent)
 
     int n=0;
     n = (x_val+(pAnalysis->m_ChannelsLeg/2-1))*pAnalysis->m_DisplayDotNum/pAnalysis->m_ChannelsLeg;
-    qDebug("x:%f,y:%f\n",x_val,y_val);
-    qDebug("n=%d\n",n);
+    //qDebug("x:%f,y:%f\n",x_val,y_val);
+    //qDebug("n=%d\n",n);
 
     ui->Ch1DataLabel->setText(QString::number(pAnalysis->m_Channel1_y[n],'g',6));
     ui->Ch2DataLabel->setText(QString::number(pAnalysis->m_Channel2_y[n],'g',6));
@@ -572,8 +583,8 @@ void MainWindow::MeasureSpeed(QMouseEvent *pEvent)
 
     int n=0;
     n = (x_val-m_XStart)/m_XScanRange*m_DisplayPoint;
-    qDebug("x:%f,y:%f\n",x_val,y_val);
-    qDebug("n=%d\n",n);
+    //qDebug("x:%f,y:%f\n",x_val,y_val);
+    //qDebug("n=%d\n",n);
 
     ui->PositiveDataLabel->setText(QString::number(Speed_Y[n],'g',6));
     ui->NegativeDataLabel->setText(QString::number(Speed_NY[n],'g',6));

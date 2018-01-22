@@ -69,7 +69,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
                 QString st = str.mid(i,2);//从i开始截取2个字符
                 temp[nDataCount++] = HexToValue(st);//将hex字符转成数字值
             }
-            qDebug("A Frame Data Counts:%d\n",nDataCount);
+            //qDebug("A Frame Data Counts:%d\n",nDataCount);
             str.clear();
             switch (char step=0)
             {
@@ -81,8 +81,8 @@ void TAnalysis::AnalysisRecvData(QString &str)
                      }
                      else
                      {
-                         qDebug("StartBytes Error!\n");
-                         qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[0],temp[1],temp[2],temp[3]);
+                         //qDebug("StartBytes Error!\n");
+                         //qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[0],temp[1],temp[2],temp[3]);
                          break;
                      }
                 }
@@ -95,8 +95,8 @@ void TAnalysis::AnalysisRecvData(QString &str)
                     }
                     else
                     {
-                        qDebug("StopBytes Error!\n");
-                        qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[nDataCount-4],temp[nDataCount-3],temp[nDataCount-2],temp[nDataCount-1]);
+                        //qDebug("StopBytes Error!\n");
+                        //qDebug("0x%x,0x%x,0x%x,0x%x\n",temp[nDataCount-4],temp[nDataCount-3],temp[nDataCount-2],temp[nDataCount-1]);
                         break;
                     }
                 }
@@ -104,7 +104,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
                 case 2://截取通道数
                 {
                     m_Channels = temp[4];
-                    qDebug("m_Channels = %x\n",m_Channels);
+                    //qDebug("m_Channels = %x\n",m_Channels);
                     step = 3;
                 }
 
@@ -114,17 +114,17 @@ void TAnalysis::AnalysisRecvData(QString &str)
                     channellen.Data.HIGH_BYTE = temp[5];
                     channellen.Data.LOW_BYTE = temp[6];
                     m_ChannelsLeg = channellen.value;
-                    qDebug("m_ChannelsLeg = %d\n",m_ChannelsLeg);
+                    //qDebug("m_ChannelsLeg = %d\n",m_ChannelsLeg);
                     step = 4;
                 }
 
                 case 4: //截取坐标数据
                 {
                     int nValueCount = (nDataCount-19);
-                    qDebug("A Frame Value Count:%d\n",nValueCount);
+                    //qDebug("A Frame Value Count:%d\n",nValueCount);
                     m_DotNum = temp[5]*0xffff+temp[6];//从数据帧中获取的点数
                     m_DisplayDotNum = nValueCount/(2*m_Channels);//实际点数
-                    qDebug("m_DotNum = %d, m_DisplayDotNum=%d\n",m_DotNum,m_DisplayDotNum);
+                    //qDebug("m_DotNum = %d, m_DisplayDotNum=%d\n",m_DotNum,m_DisplayDotNum);
                     int pos = 7;
                     t_DataValue dotvalue;
                     double tmp[m_Channels];
@@ -182,7 +182,7 @@ bool TAnalysis::uStrcmp(unsigned char *str1, char *str2)
 {
     while((*str1 != '\0')&&(*str2 != '\0'))
     {
-        qDebug("str1=%x,str2=%x\n",*str1,(*str2&0xff));
+        //qDebug("str1=%x,str2=%x\n",*str1,(*str2&0xff));
         if(*str1 != (*str2&0xff))return false;
         str1++;
         str2++;
