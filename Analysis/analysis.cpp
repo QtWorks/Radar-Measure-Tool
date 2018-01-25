@@ -5,32 +5,22 @@
 
 TAnalysis::TAnalysis()
 {
-    m_Channels = 4;
+    m_Channels = 8;
     m_ChannelsLeg = 256;
     m_DisplayDotNum = 255;
-    m_Channel_x = new double   [0xffff];
-    m_Channel1_y = new double  [0xffff];
-    m_Channel2_y = new double  [0xffff];
-    m_Channel3_y = new double  [0xffff];
-    m_Channel4_y = new double  [0xffff];
-    m_Channel5_y = new double  [0xffff];
-    m_Channel6_y = new double  [0xffff];
-    m_Channel7_y = new double  [0xffff];
-    m_Channel8_y = new double  [0xffff];
-
 }
 
 TAnalysis::~TAnalysis()
 {
-    delete [] m_Channel_x;
-    delete [] m_Channel1_y;
-    delete [] m_Channel2_y;
-    delete [] m_Channel3_y;
-    delete [] m_Channel4_y;
-    delete [] m_Channel5_y;
-    delete [] m_Channel6_y;
-    delete [] m_Channel7_y;
-    delete [] m_Channel8_y;
+    m_Channel_x.clear();
+    m_Channel1_y.clear();
+    m_Channel2_y.clear();
+    m_Channel3_y.clear();
+    m_Channel4_y.clear();
+    m_Channel5_y.clear();
+    m_Channel6_y.clear();
+    m_Channel7_y.clear();
+    m_Channel8_y.clear();
 }
 
 void TAnalysis::AnalysisRecvData(QString &str)
@@ -53,14 +43,14 @@ void TAnalysis::AnalysisRecvData(QString &str)
     */
 
     QString StartBytes = "E4 2C E4 2C";
-    QString StopBytes = "E4 8B E4 8B ";
+    QString StopBytes = "E4 8B E4 8B "; //need a space
     if(str.startsWith(StartBytes)&&str.endsWith(StopBytes))
     {
             //qDebug("Get a valid Frame!\n");
             //qDebug()<<m_AnalysisBuf;
 
             int nFrameLen = str.length();
-            qDebug("A Frame Length=%d\n",nFrameLen);
+            //qDebug("A Frame Length=%d\n",nFrameLen);
             unsigned char temp[nFrameLen];
             int nDataCount=0;
 
@@ -127,7 +117,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
                     //qDebug("m_DotNum = %d, m_DisplayDotNum=%d\n",m_DotNum,m_DisplayDotNum);
                     int pos = 7;
                     t_DataValue dotvalue;
-                    double tmp[m_Channels];
+                    double tmp[10]={0};
                     for(int n=0;n<m_DisplayDotNum;n++)
                     {
                         for(int m=0;m<m_Channels;m++)//通道的第一个点
@@ -136,11 +126,16 @@ void TAnalysis::AnalysisRecvData(QString &str)
                             dotvalue.Data.LOW_BYTE = temp[pos++];
                             tmp[m] = (double)dotvalue.value;
                         }
-                        m_Channel1_y[n] = tmp[0];
-                        m_Channel2_y[n] = tmp[1];
-                        m_Channel3_y[n] = tmp[2];
-                        m_Channel4_y[n] = tmp[3];
-                        m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
+
+                        m_Channel_x<<(double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
+                        m_Channel1_y<<tmp[0];
+                        m_Channel2_y<<tmp[1];
+                        m_Channel3_y<<tmp[2];
+                        m_Channel4_y<<tmp[3];
+                        m_Channel5_y<<tmp[4];
+                        m_Channel6_y<<tmp[5];
+                        m_Channel7_y<<tmp[6];
+                        m_Channel8_y<<tmp[7];
                     }
 
                     step = 5;

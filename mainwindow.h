@@ -8,7 +8,7 @@
 #include "Qcustomplot/qcustomplot.h"
 #include "qtimer.h"
 #include "QPainter"
-#include "QToolTip"
+#include "QtGlobal"
 
 namespace Ui {
 class MainWindow;
@@ -47,8 +47,15 @@ private slots:
     //接收数据
     void ReceiveData(); //串口数据触发
     void RecvWaveData(); //定时器触发
-    void MeasurePoint(QMouseEvent *pEvent);//鼠标事件触发
-    void MeasureSpeed(QMouseEvent *pEvent);
+
+    void ActiveMeasureCusor(QMouseEvent *pEvent);
+    void ActiveSpeedCusor(QMouseEvent *pEvent);
+
+    void MeasureCusorY1Dispose(QMouseEvent *pEvent);
+    void MeasureCusorY2Dispose(QMouseEvent *pEvent);
+    void MeasureCusorY3Dispose(QMouseEvent *pEvent);
+    void MeasureCusorY4Dispose(QMouseEvent *pEvent);
+
 
 private:
     int index;
@@ -64,6 +71,9 @@ private:
     bool FrameStartFlag;
     double m_DataRange;
 
+    bool m_ActiveFlagPoint;
+    bool m_ActiveFlagSpeed;
+
     Ui::MainWindow *ui;
     TCom *pCom;//串口
     TAnalysis *pAnalysis;
@@ -74,6 +84,8 @@ private:
     QString m_AnalysisData;
     QString m_SubAnalysisData;
     QVector<double> Speed_X,Speed_Y,Speed_NY;
+    QVector<double> MeasureCusorX1,MeasureCusorY1,MeasureCuserX2,MeasureCuserY2;
+    QVector<double> SpeedCusorX1, SpeedCusorY1, SpeedCusorX2, SpeedCusorY2;
 
 };
 
