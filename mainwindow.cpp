@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_AnalysisData = "";
     m_SubAnalysisData = "";
 
+    m_ActiveFlagPoint=false;
+    m_ActiveFlagSpeed=false;
+
     //开始按钮样式
     m_StartButtonState = false;
     ui->StartPushButton->setText("START");
@@ -175,16 +178,6 @@ MainWindow::~MainWindow()
     m_AnalysisData.clear();
     m_SubAnalysisData.clear();
 
-    MeasureCusorX1.clear();
-    MeasureCusorY1.clear();
-    MeasureCuserX2.clear();
-    MeasureCuserY2.clear();
-
-    SpeedCusorX1.clear();
-    SpeedCusorY1.clear();
-    SpeedCusorX2.clear();
-    SpeedCusorY2.clear();
-
     //delete pTimer;
 
     return;
@@ -307,25 +300,34 @@ void MainWindow::on_WaveMeasureCheckBox_toggled(bool checked)
         Pen.setColor(Qt::white);
         Pen.setStyle(Qt::DashLine);
 
-        for(long int i=0;i<pAnalysis->m_ChannelsLeg;i++)
-        {
-            MeasureCusorX1<<(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
-            MeasureCusorY1<<(double)m_DataRange/2;
-        }
-        ui->ChannelWidget->graph(0)->setPen(Pen);
-        ui->ChannelWidget->graph(0)->setData(MeasureCusorX1,MeasureCusorY1);
-        ui->ChannelWidget->graph(0)->setName("Y1");
-        ui->ChannelWidget->replot();
+        QVector<double> x(pAnalysis->m_ChannelsLeg),y(pAnalysis->m_ChannelsLeg);
 
         for(long int i=0;i<pAnalysis->m_ChannelsLeg;i++)
         {
-            MeasureCuserX2<<(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
-            MeasureCuserY2<<(double)(-m_DataRange/2);
+            x[i]=(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
+            y[i]=(double)m_DataRange/2;
+        }
+        ui->ChannelWidget->graph(0)->setPen(Pen);
+        ui->ChannelWidget->graph(0)->setData(x,y);
+        ui->ChannelWidget->graph(0)->setName("Y1");
+        ui->ChannelWidget->replot();
+
+        Y1 = y.at(1);
+
+        for(long int i=0;i<pAnalysis->m_ChannelsLeg;i++)
+        {
+            x[i]=(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
+            y[i]=(double)(-m_DataRange/2);
         }
         ui->ChannelWidget->graph(9)->setPen(Pen);
-        ui->ChannelWidget->graph(9)->setData(MeasureCuserX2,MeasureCuserY2);
+        ui->ChannelWidget->graph(9)->setData(x,y);
         ui->ChannelWidget->graph(9)->setName("Y2");
         ui->ChannelWidget->replot();
+
+        Y2=y.at(1);
+
+        x.clear();
+        y.clear();
 
         connect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
     }
@@ -361,25 +363,33 @@ void MainWindow::on_SpeedMeasureCheckBox_toggled(bool checked)
         Pen.setColor(Qt::white);
         Pen.setStyle(Qt::DashLine);
 
+        QVector<double> x(pAnalysis->m_ChannelsLeg),y(pAnalysis->m_ChannelsLeg);
         for(long int i=0;i<m_XScanRange+1;i++)
         {
-            SpeedCusorX1<<(double)(i-m_XStart);
-            SpeedCusorY1<<(double)m_YScanRange/2;
+            x[i]=(double)(i-m_XStart);
+            y[i]=(double)m_YScanRange/2;
         }
         ui->ResultWidget->graph(0)->setPen(Pen);
-        ui->ResultWidget->graph(0)->setData(SpeedCusorX1,SpeedCusorY1);
+        ui->ResultWidget->graph(0)->setData(x,y);
         ui->ResultWidget->graph(0)->setName("Y3");
         ui->ResultWidget->replot();
 
+        Y3=y.at(1);
+
         for(long int i=0;i<m_XScanRange+1;i++)
         {
-            SpeedCusorX2<<(double)(i-m_XStart);
-            SpeedCusorY2<<(double)(-m_YScanRange/2);
+            x[i]=(double)(i-m_XStart);
+            y[i]=(double)(-m_YScanRange/2);
         }
         ui->ResultWidget->graph(3)->setPen(Pen);
-        ui->ResultWidget->graph(3)->setData(SpeedCusorX2,SpeedCusorY2);
+        ui->ResultWidget->graph(3)->setData(x,y);
         ui->ResultWidget->graph(3)->setName("Y4");
         ui->ResultWidget->replot();
+
+        Y4=y.at(1);
+
+        x.clear();
+        y.clear();
 
         connect(ui->ResultWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveSpeedCusor(QMouseEvent*)));
     }
@@ -388,6 +398,7 @@ void MainWindow::on_SpeedMeasureCheckBox_toggled(bool checked)
         ui->ResultWidget->graph(0)->setVisible(false);
         ui->ResultWidget->graph(3)->setVisible(false);
         ui->ResultWidget->replot();
+
         disconnect(ui->ResultWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveSpeedCusor(QMouseEvent*)));
     }
 
@@ -401,6 +412,7 @@ void MainWindow::on_HEXRecCheckBox_toggled(bool checked)
         pCom->m_AsciiRecFlag=false;
         ui->AsciiRecCheckBox->setChecked(false);
     }
+
     pCom->m_HexRecFlag = checked;
 
     return;
@@ -662,9 +674,12 @@ void MainWindow::ActiveMeasureCusor(QMouseEvent *pEvent)
         y_val = m_DataRange;
     }
 
-    if(qAbs(y_val-SpeedCusorY2[0])<qAbs(y_val-SpeedCusorY1))//near Y2
+    qDebug("x1=%f,y1=%f\n",x_val,y_val);
+
+
+    if( qAbs(y_val-Y2)<qAbs(y_val-Y1))//near Y2
     {
-        if(m_ActiveFlagPoint)
+        if(!m_ActiveFlagPoint)
         {
             connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY2Dispose(QMouseEvent*)));
             m_ActiveFlagPoint = true;
@@ -674,11 +689,10 @@ void MainWindow::ActiveMeasureCusor(QMouseEvent *pEvent)
             disconnect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY2Dispose(QMouseEvent*)));
             m_ActiveFlagPoint = false;
         }
-
     }
-    else
+    else//near Y1
     {
-        if(m_ActiveFlagPoint)
+        if(!m_ActiveFlagPoint)
         {
             connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY1Dispose(QMouseEvent*)));
             m_ActiveFlagPoint = true;
@@ -725,20 +739,33 @@ void MainWindow::MeasureCusorY1Dispose(QMouseEvent *pEvent)
     Pen.setWidth(1);
     Pen.setStyle(Qt::DashLine); 
 
+    QVector<double> x(pAnalysis->m_ChannelsLeg),y(pAnalysis->m_ChannelsLeg);
+
     for(long int i=0;i<pAnalysis->m_ChannelsLeg;i++)
     {
-        MeasureCusorX1<<(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
-        MeasureCusorY1<<(double)y_val;
+        x[i]=(double)(i-(pAnalysis->m_ChannelsLeg/2-1));
+        y[i]=(double)y_val;
     }
 
+    Y1 = y.at(1);
+
     ui->ChannelWidget->graph(0)->setPen(Pen);
-    ui->ChannelWidget->graph(0)->setData(MeasureCusorX1,MeasureCusorY1);
+    ui->ChannelWidget->graph(0)->setData(x,y);
     ui->ChannelWidget->graph(0)->setName("Legend");
     ui->ChannelWidget->replot();
 
+    x.clear();
+    y.clear();
+
+    DY = Y1-Y2;
+
+    ui->Y1ValLineEdit->setText(QString::number(Y1,'f',2));
+    ui->Y2ValLineEdit->setText(QString::number(Y2,'f',2));
+    ui->DifferValLineEdit->setText(QString::number(DY,'f',2));
+
+
     return;
 }
-
 
 void MainWindow::MeasureCusorY2Dispose(QMouseEvent *pEvent)
 {
@@ -779,20 +806,32 @@ void MainWindow::MeasureCusorY2Dispose(QMouseEvent *pEvent)
         y[i]=(double)y_val;
     }
 
+    Y2 = y.at(1);
+
     ui->ChannelWidget->graph(9)->setPen(Pen);
     ui->ChannelWidget->graph(9)->setData(x,y);
     ui->ChannelWidget->graph(9)->setName("Legend");
     ui->ChannelWidget->replot();
+
+    x.clear();
+    y.clear();
+
+    DY = Y1-Y2;
+    ui->Y1ValLineEdit->setText(QString::number(Y1,'f',2));
+    ui->Y2ValLineEdit->setText(QString::number(Y2,'f',2));
+    ui->DifferValLineEdit->setText(QString::number(DY,'f',2));
 
     return;
 }
 
 void MainWindow::ActiveSpeedCusor(QMouseEvent *pEvent)
 {
+
+
     return;
 }
 
-void MainWindow::MeasureSpeed(QMouseEvent *pEvent)
+void MainWindow::MeasureCusorY3Dispose(QMouseEvent *pEvent)
 {
     int x_pose = pEvent->pos().x();
     int y_pose = pEvent->pos().y();
@@ -836,5 +875,9 @@ void MainWindow::MeasureSpeed(QMouseEvent *pEvent)
     return;
 }
 
+void MainWindow::MeasureCusorY4Dispose(QMouseEvent *pEvent)
+{
 
+    return;
+}
 

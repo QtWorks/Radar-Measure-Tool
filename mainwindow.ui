@@ -481,56 +481,17 @@
       <string>图例</string>
      </property>
     </widget>
-    <widget class="QLabel" name="Ch1Label">
+    <widget class="QLabel" name="DifferLabel">
      <property name="geometry">
       <rect>
-       <x>21</x>
+       <x>302</x>
        <y>240</y>
-       <width>31</width>
+       <width>41</width>
        <height>21</height>
       </rect>
      </property>
      <property name="text">
-      <string>Ch1:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch2Label">
-     <property name="geometry">
-      <rect>
-       <x>153</x>
-       <y>240</y>
-       <width>31</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Ch2:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch3Label">
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>240</y>
-       <width>31</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Ch3:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch4Label">
-     <property name="geometry">
-      <rect>
-       <x>433</x>
-       <y>242</y>
-       <width>31</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Ch4:</string>
+      <string>Y1-Y2:</string>
      </property>
     </widget>
     <widget class="QLabel" name="PositiveLabel">
@@ -557,84 +518,6 @@
      </property>
      <property name="text">
       <string>Negative:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch1DataLabel">
-     <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>240</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch2DataLabel">
-     <property name="geometry">
-      <rect>
-       <x>183</x>
-       <y>240</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch3DataLabel">
-     <property name="geometry">
-      <rect>
-       <x>323</x>
-       <y>240</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Ch4DataLabel">
-     <property name="geometry">
-      <rect>
-       <x>463</x>
-       <y>240</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="PositiveDataLabel">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>490</y>
-       <width>91</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="NegativeDataLabel">
-     <property name="geometry">
-      <rect>
-       <x>240</x>
-       <y>490</y>
-       <width>91</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
      </property>
     </widget>
     <widget class="QCheckBox" name="WaveMeasureCheckBox">
@@ -674,6 +557,82 @@
      </property>
      <property name="text">
       <string>图例</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Y1Label">
+     <property name="geometry">
+      <rect>
+       <x>22</x>
+       <y>242</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y1:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="Y1ValLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>48</x>
+       <y>241</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Y2Label">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>243</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y2:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="Y2ValLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>185</x>
+       <y>241</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="DifferValLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>345</x>
+       <y>240</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="PositiveLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>75</x>
+       <y>490</y>
+       <width>91</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="NegativeLineEdit">
+     <property name="geometry">
+      <rect>
+       <x>245</x>
+       <y>489</y>
+       <width>91</width>
+       <height>20</height>
+      </rect>
      </property>
     </widget>
    </widget>

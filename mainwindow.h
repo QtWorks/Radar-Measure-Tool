@@ -84,9 +84,8 @@ private:
     QString m_AnalysisData;
     QString m_SubAnalysisData;
     QVector<double> Speed_X,Speed_Y,Speed_NY;
-    QVector<double> MeasureCusorX1,MeasureCusorY1,MeasureCuserX2,MeasureCuserY2;
-    QVector<double> SpeedCusorX1, SpeedCusorY1, SpeedCusorX2, SpeedCusorY2;
 
+    double Y1,Y2,Y3,Y4,DY;
 };
 
 #endif // MAINWINDOW_H
