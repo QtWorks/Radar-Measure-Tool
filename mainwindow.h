@@ -56,7 +56,6 @@ private slots:
     void MeasureCusorY3Dispose(QMouseEvent *pEvent);
     void MeasureCusorY4Dispose(QMouseEvent *pEvent);
 
-
 private:
     int index;
     double Value;
