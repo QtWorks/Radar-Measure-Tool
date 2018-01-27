@@ -43,10 +43,9 @@ private slots:
     void on_SpeedLegendCheckBox_toggled(bool checked);
     void on_SpeedMeasureCheckBox_toggled(bool checked);
 
-
     //接收数据
-    void ReceiveData(); //串口数据触发
-    void RecvWaveData(); //定时器触发
+    void ReceiveData();//串口数据触发
+    void RecvWaveData();//定时器触发
 
     void ActiveMeasureCusor(QMouseEvent *pEvent);
     void ActiveSpeedCusor(QMouseEvent *pEvent);
@@ -61,15 +60,20 @@ private:
     double Value;
     bool m_StartButtonState;//开始按钮标志
     unsigned char OperateFlag;
-    int m_XScanRange;
+
+    int m_XScanRange;//X扫描范围
     double m_XStart;
     double m_XStop;
-    int m_YScanRange;
-    int m_DisplayPoint;
-    double m_Moment;
-    bool FrameStartFlag;
-    double m_DataRange;
 
+    int m_YScanRange;//Y扫描范围
+
+    int m_DisplayPoint;//显示点数
+
+    double m_DataRange;//数据范围
+
+    double m_Moment;//时刻
+
+    bool FrameStartFlag;
     bool m_ActiveFlagPoint;
     bool m_ActiveFlagSpeed;
 

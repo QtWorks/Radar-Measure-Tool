@@ -106,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ChannelWidget->legend->setBrush(QColor(50,50,50,0));//图例透明
     ui->ChannelWidget->legend->setBorderPen(Pen);
     ui->ChannelWidget->legend->setTextColor(Qt::white);
-    ui->ChannelWidget->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignTop | Qt::AlignRight);
+    ui->ChannelWidget->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignCenter | Qt::AlignRight);
 
     ui->ChannelWidget->xAxis->setRange(-(pAnalysis->m_ChannelsLeg/2-1),(pAnalysis->m_ChannelsLeg/2-1));
     //ui->ChannelWidget->xAxis->setRange(-127,127);
@@ -153,7 +153,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ResultWidget->addGraph();//增加光标图层0
     ui->ResultWidget->addGraph();//Positive
     ui->ResultWidget->addGraph();//Nagative
-    ui->ResultWidget->addGraph();//增加光标图层3
+    //ui->ResultWidget->addGraph();//增加光标图层3
 
     //定时器
     //pTimer = new QTimer();
@@ -198,28 +198,29 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
 {
     index = ui->XRangeLineEdit->displayText().toInt();
     pSetting->setValue("XRange",index);
-    m_XScanRange = index;
+    m_XScanRange = index;//取X扫描范围
+
     index = ui->YRangeLineEdit->displayText().toInt();
     pSetting->setValue("YRange",index);
-    m_YScanRange = index;
+    m_YScanRange = index;//取Y扫描范围
+
     index = ui->PointNumLineEdit->displayText().toInt();
     pSetting->setValue("DisplayDotsNum",index);
-    m_DisplayPoint = index;
+    m_DisplayPoint = index;//取显示点数
 
     Value = ui->DataRangeLineEdit->displayText().toDouble();
     pSetting->setValue("DataRange",Value);
-    m_DataRange = Value;
+    m_DataRange = Value;//取数据范围
 
     m_XStart = m_XStop-(double)m_XScanRange;
     ui->ResultWidget->xAxis->setRange(m_XStart, m_XStop);
-
-    ui->ResultWidget->yAxis->setRange(-(m_YScanRange),m_YScanRange);
+    ui->ResultWidget->yAxis->setRange(-(m_YScanRange),m_YScanRange);//更新速度坐标
     ui->ResultWidget->replot();
 
-    ui->ChannelWidget->yAxis->setRange(-(m_DataRange),m_DataRange);
+    ui->ChannelWidget->yAxis->setRange(-(m_DataRange),m_DataRange);//更新数据坐标
     ui->ChannelWidget->replot();
 
-    Speed_X.resize(m_DisplayPoint+10);
+    Speed_X.resize(m_DisplayPoint+10);//更新容器大小，因显示点数而变
     Speed_Y.resize(m_DisplayPoint+10);
     Speed_NY.resize(m_DisplayPoint+10);
 
@@ -228,6 +229,7 @@ void MainWindow::on_SaveScanRangePushButton_clicked()
 
 void MainWindow::on_SaveSerialCfgPushButton_clicked()
 {
+    /*保存串口设置*/
     index = ui->PortComboBox->currentIndex();
     pSetting->setValue("PortIndex",index);
     index = ui->BaudComboBox->currentIndex();
@@ -474,6 +476,7 @@ void MainWindow::ReceiveData()
     return;
 }
 
+/*定时器方案预留*/
 void MainWindow::RecvWaveData()
 {
     if(m_StartButtonState)
@@ -564,7 +567,7 @@ void MainWindow::ShowWave()
     Pen.setColor(Qt::darkGray);
     ui->ChannelWidget->graph(8)->setPen(Pen);
     ui->ChannelWidget->graph(8)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel8_y);
-    ui->ChannelWidget->graph(8)->setName("Eigth");
+    ui->ChannelWidget->graph(8)->setName("Eighth");
     ui->ChannelWidget->replot();
 
     pAnalysis->m_Channel_x.clear();
@@ -884,8 +887,8 @@ void MainWindow::MeasureCusorY3Dispose(QMouseEvent *pEvent)
     int n=(int)((x_val-m_XStart)*m_DisplayPoint/m_XScanRange);
     //qDebug("n=%d\n",n);
 
-    ui->PositiveLineEdit->setText(QString::number(Speed_Y[n],'g',2));
-    ui->NegativeLineEdit->setText(QString::number(Speed_NY[n],'g',2));
+    ui->PositiveLineEdit->setText(QString::number(Speed_Y[n],'f',2));
+    ui->NegativeLineEdit->setText(QString::number(Speed_NY[n],'f',2));
 
     return;
 }
