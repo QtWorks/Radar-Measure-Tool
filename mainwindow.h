@@ -48,12 +48,25 @@ private slots:
     void RecvWaveData();//定时器触发
 
     void ActiveMeasureCusor(QMouseEvent *pEvent);
+    void MeasureCusorTrack(QMouseEvent *pEvent);
     void ActiveSpeedCusor(QMouseEvent *pEvent);
+    void SpeedCusorTrack(QMouseEvent *pEvent);
+
 
     void MeasureCusorY1Dispose(QMouseEvent *pEvent);
     void MeasureCusorY2Dispose(QMouseEvent *pEvent);
     void MeasureCusorY3Dispose(QMouseEvent *pEvent);
-    void MeasureCusorY4Dispose(QMouseEvent *pEvent);
+
+
+private:
+    void oneChannelWave(void);
+    void twoChannelWave(void);
+    void threeChannelWave(void);
+    void fourChannelWave(void);
+    void fiveChannelWave(void);
+    void sixChannelWave(void);
+    void sevenChannelWave(void);
+    void eigthChannelWave(void);
 
 private:
     int index;
@@ -74,8 +87,11 @@ private:
     double m_Moment;//时刻
 
     bool FrameStartFlag;
-    bool m_ActiveFlagPoint;
+    bool m_ActiveFlagPoint;//测量光标标志
     bool m_ActiveFlagSpeed;
+
+    bool m_ClickFlagPoint;
+    bool m_ClickFlagSpeed;
 
     Ui::MainWindow *ui;
     TCom *pCom;//串口

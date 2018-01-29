@@ -8,6 +8,12 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle("CECPort雷达调试助手");
     setWindowIcon(QIcon(":/new/images/Resouce/image.png")); //设置图标
 
+    Qt::WindowFlags flags = 0;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags |= Qt::WindowCloseButtonHint;
+    flags |= Qt::MSWindowsFixedSizeDialogHint;
+    setWindowFlags(flags);
+
     PATH = "config.xml";
     pSetting = new QSettings(PATH, QSettings::IniFormat);
     pCom = new TCom;
@@ -97,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //波形图坐标设置
     //ui->ChannelWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
     //ui->ResultWidget->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectAxes|QCP::iSelectLegend|QCP::iSelectPlottables);
+
     QPen Pen;
     Pen.setWidth(1);
     Pen.setColor(Qt::white);
@@ -131,6 +138,22 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->ChannelWidget->addGraph();//增加光标图层9
 
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+    ui->ChannelWidget->replot();
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->replot();
+
     ui->ResultWidget->setBackground(qBrushColor);
     ui->ResultWidget->legend->setVisible(false);
     ui->ResultWidget->legend->setBrush(QColor(50,50,50,0));//图例透明
@@ -150,6 +173,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ResultWidget->yAxis->setTickLabelColor(Qt::white);
     ui->ResultWidget->yAxis->setBasePen(QColor(32,178,170));
     ui->ResultWidget->yAxis->setTickPen(QColor(255,165,0));
+
     ui->ResultWidget->addGraph();//增加光标图层0
     ui->ResultWidget->addGraph();//Positive
     ui->ResultWidget->addGraph();//Nagative
@@ -341,7 +365,8 @@ void MainWindow::on_WaveMeasureCheckBox_toggled(bool checked)
         x.clear();
         y.clear();
 
-        connect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+        //connect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+        connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorTrack(QMouseEvent*)));
     }
     else
     {
@@ -349,7 +374,8 @@ void MainWindow::on_WaveMeasureCheckBox_toggled(bool checked)
         ui->ChannelWidget->graph(9)->setVisible(false);
         ui->ChannelWidget->replot();
 
-        disconnect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+        //disconnect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+        disconnect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorTrack(QMouseEvent*)));
     }
 
     return;
@@ -368,14 +394,15 @@ void MainWindow::on_SpeedMeasureCheckBox_toggled(bool checked)
     if(checked)
     {
         ui->ResultWidget->graph(0)->setVisible(true);
-        connect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY3Dispose(QMouseEvent*)));
-        connect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+
+        //connect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+        connect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(SpeedCusorTrack(QMouseEvent*)));
         ui->ResultWidget->replot();
     }
     else
     {
-        disconnect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY3Dispose(QMouseEvent*)));
-        disconnect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+        //disconnect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+        disconnect(ui->ResultWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(SpeedCusorTrack(QMouseEvent*)));
         ui->ResultWidget->graph(0)->setVisible(false);
         ui->ResultWidget->replot();
     }
@@ -462,7 +489,7 @@ void MainWindow::ReceiveData()
             pAnalysis->AnalysisRecvData(str);
             ShowWave();
             ShowSpeed();
-            qDebug("moment:%f\n",(double)m_XScanRange/(double)m_DisplayPoint);
+            //qDebug("moment:%f\n",(double)m_XScanRange/(double)m_DisplayPoint);
             m_Moment += ((double)m_XScanRange/(double)m_DisplayPoint);
             m_AnalysisData.clear();
             m_SubAnalysisData.clear();
@@ -519,66 +546,62 @@ void MainWindow::RecvWaveData()
 
 void MainWindow::ShowWave()
 {
-    QPen Pen;
-    Pen.setWidth(1);
+    switch (pAnalysis->m_Channels)//根据通道数显示
+    {
+        case 1:
+        {
+            oneChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::red);
-    ui->ChannelWidget->graph(1)->setPen(Pen);
-    ui->ChannelWidget->graph(1)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel1_y);
-    ui->ChannelWidget->graph(1)->setName("First");
-    ui->ChannelWidget->replot();
+        case 2:
+        {
+            twoChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::green);
-    ui->ChannelWidget->graph(2)->setPen(Pen);
-    ui->ChannelWidget->graph(2)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel2_y);
-    ui->ChannelWidget->graph(2)->setName("Second");
-    ui->ChannelWidget->replot();
+        case 3:
+        {
+            threeChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::yellow);
-    ui->ChannelWidget->graph(3)->setPen(Pen);
-    ui->ChannelWidget->graph(3)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel3_y);
-    ui->ChannelWidget->graph(3)->setName("third");
-    ui->ChannelWidget->replot();
+        case 4:
+        {
+            fourChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::lightGray);
-    ui->ChannelWidget->graph(4)->setPen(Pen);
-    ui->ChannelWidget->graph(4)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel4_y);
-    ui->ChannelWidget->graph(4)->setName("Forth");
-    ui->ChannelWidget->replot();
+        case 5:
+        {
+            fiveChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::darkRed);
-    ui->ChannelWidget->graph(5)->setPen(Pen);
-    ui->ChannelWidget->graph(5)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel5_y);
-    ui->ChannelWidget->graph(5)->setName("Fifth");
-    ui->ChannelWidget->replot();
+        case 6:
+        {
+            sixChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::darkGreen);
-    ui->ChannelWidget->graph(6)->setPen(Pen);
-    ui->ChannelWidget->graph(6)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel6_y);
-    ui->ChannelWidget->graph(6)->setName("Sixth");
-    ui->ChannelWidget->replot();
+        case 7:
+        {
+            sevenChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::darkYellow);
-    ui->ChannelWidget->graph(7)->setPen(Pen);
-    ui->ChannelWidget->graph(7)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel7_y);
-    ui->ChannelWidget->graph(7)->setName("Seventh");
-    ui->ChannelWidget->replot();
+        case 8:
+        {
+            eigthChannelWave();
+        }
+        break;
 
-    Pen.setColor(Qt::darkGray);
-    ui->ChannelWidget->graph(8)->setPen(Pen);
-    ui->ChannelWidget->graph(8)->setData(pAnalysis->m_Channel_x,pAnalysis->m_Channel8_y);
-    ui->ChannelWidget->graph(8)->setName("Eighth");
-    ui->ChannelWidget->replot();
-
-    pAnalysis->m_Channel_x.clear();
-    pAnalysis->m_Channel1_y.clear();
-    pAnalysis->m_Channel2_y.clear();
-    pAnalysis->m_Channel3_y.clear();
-    pAnalysis->m_Channel4_y.clear();
-    pAnalysis->m_Channel5_y.clear();
-    pAnalysis->m_Channel6_y.clear();
-    pAnalysis->m_Channel7_y.clear();
-    pAnalysis->m_Channel8_y.clear();
+        default:
+        {
+            fourChannelWave();
+        }
+        break;
+    }
 
     return;
 }
@@ -674,11 +697,13 @@ void MainWindow::ActiveMeasureCusor(QMouseEvent *pEvent)
         {
             connect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY1Dispose(QMouseEvent*)));
             m_ActiveFlagPoint = true;
+            //qDebug("active\n");
         }
         else
         {
             disconnect(ui->ChannelWidget,SIGNAL(mouseMove(QMouseEvent*)),this,SLOT(MeasureCusorY1Dispose(QMouseEvent*)));
             m_ActiveFlagPoint = false;
+            //qDebug("dis active\n");
         }
     }
 
@@ -729,7 +754,7 @@ void MainWindow::MeasureCusorY1Dispose(QMouseEvent *pEvent)
 
     ui->ChannelWidget->graph(0)->setPen(Pen);
     ui->ChannelWidget->graph(0)->setData(x,y);
-    ui->ChannelWidget->graph(0)->setName("Legend");
+    ui->ChannelWidget->graph(0)->setName("Y1");
     ui->ChannelWidget->replot();
 
     x.clear();
@@ -788,7 +813,7 @@ void MainWindow::MeasureCusorY2Dispose(QMouseEvent *pEvent)
 
     ui->ChannelWidget->graph(9)->setPen(Pen);
     ui->ChannelWidget->graph(9)->setData(x,y);
-    ui->ChannelWidget->graph(9)->setName("Legend");
+    ui->ChannelWidget->graph(9)->setName("Y2");
     ui->ChannelWidget->replot();
 
     x.clear();
@@ -881,7 +906,7 @@ void MainWindow::MeasureCusorY3Dispose(QMouseEvent *pEvent)
     }
     ui->ResultWidget->graph(0)->setPen(Pen);
     ui->ResultWidget->graph(0)->setData(x,y);
-    ui->ResultWidget->graph(0)->setName("Legend");
+    ui->ResultWidget->graph(0)->setName("Cusor");
     ui->ResultWidget->replot();
 
     int n=(int)((x_val-m_XStart)*m_DisplayPoint/m_XScanRange);
@@ -893,31 +918,653 @@ void MainWindow::MeasureCusorY3Dispose(QMouseEvent *pEvent)
     return;
 }
 
-void MainWindow::MeasureCusorY4Dispose(QMouseEvent *pEvent)
+void MainWindow::MeasureCusorTrack(QMouseEvent *pEvent)
+{
+    int x_pose = pEvent->pos().x();
+    int y_pose = pEvent->pos().y();
+    float x_val = ui->ChannelWidget->xAxis->pixelToCoord(x_pose);
+    float y_val = ui->ChannelWidget->yAxis->pixelToCoord(y_pose);
+    /*限定X*/
+    if(((x_val+(pAnalysis->m_ChannelsLeg/2-1))<0)||(x_val>(pAnalysis->m_ChannelsLeg/2-1))||((y_val+m_DataRange)<0)||(y_val>m_DataRange))//在范围外
+    {
+        if(m_ClickFlagPoint)//点击有效
+        {
+            disconnect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+            m_ClickFlagPoint=false;
+            //qDebug("out range, click invalid\n");
+        }
+    }
+    else
+    {
+        if(!m_ClickFlagPoint)//点击有效
+        {
+            connect(ui->ChannelWidget, SIGNAL(mouseRelease(QMouseEvent*)),this, SLOT(ActiveMeasureCusor(QMouseEvent*)));
+            m_ClickFlagPoint=true;
+            //qDebug("in range, click valid\n");
+        }
+    }
+
+    return;
+}
+
+void MainWindow::SpeedCusorTrack(QMouseEvent *pEvent)
 {
     int x_pose = pEvent->pos().x();
     int y_pose = pEvent->pos().y();
     float x_val = ui->ResultWidget->xAxis->pixelToCoord(x_pose);
     float y_val = ui->ResultWidget->yAxis->pixelToCoord(y_pose);
     /*限定X*/
-    if(x_val<m_XStart)
+    if( (x_val<m_XStart)||(x_val>m_XStop)||((y_val+m_YScanRange)<0)||(y_val>m_YScanRange) ) //在坐标范围外
     {
-        x_val=m_XStart;
+        if(m_ClickFlagSpeed)//点击有效
+        {
+            disconnect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+            m_ClickFlagSpeed=false;
+            //qDebug("out range, click invalid\n");
+        }
     }
-    if(x_val>m_XStop)
+    else
     {
-        x_val=m_XStop;
-    }
-    /*限定Y*/
-    if(y_val+m_YScanRange<0)
-    {
-        y_val=(-m_YScanRange);
-    }
-    if(y_val>m_YScanRange)
-    {
-        y_val=m_YScanRange;
+         if(!m_ClickFlagSpeed)//点击无效
+        {
+            connect(ui->ResultWidget,SIGNAL(mouseRelease(QMouseEvent*)),this,SLOT(ActiveSpeedCusor(QMouseEvent*)));
+            m_ClickFlagSpeed=true;
+            //qDebug("in range, click valid\n");
+        }
     }
 
     return;
 }
 
+
+void MainWindow::oneChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::twoChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::threeChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::fourChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel4_y[i];
+    }
+    Pen.setColor(Qt::lightGray);
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Forth");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::fiveChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->graph(5)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel4_y[i];
+    }
+    Pen.setColor(Qt::lightGray);
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Forth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel5_y[i];
+    }
+    Pen.setColor(Qt::darkRed);
+    ui->ChannelWidget->graph(5)->setPen(Pen);
+    ui->ChannelWidget->graph(5)->setData(x,y);
+    ui->ChannelWidget->graph(5)->setName("Fifth");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::sixChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->graph(5)->setVisible(true);
+    ui->ChannelWidget->graph(6)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel4_y[i];
+    }
+    Pen.setColor(Qt::lightGray);
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Forth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel5_y[i];
+    }
+    Pen.setColor(Qt::darkRed);
+    ui->ChannelWidget->graph(5)->setPen(Pen);
+    ui->ChannelWidget->graph(5)->setData(x,y);
+    ui->ChannelWidget->graph(5)->setName("Fifth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel6_y[i];
+    }
+    Pen.setColor(Qt::darkGreen);
+    ui->ChannelWidget->graph(6)->setPen(Pen);
+    ui->ChannelWidget->graph(6)->setData(x,y);
+    ui->ChannelWidget->graph(6)->setName("Sixth");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+
+void MainWindow::sevenChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(false);
+    ui->ChannelWidget->graph(2)->setVisible(false);
+    ui->ChannelWidget->graph(3)->setVisible(false);
+    ui->ChannelWidget->graph(4)->setVisible(false);
+    ui->ChannelWidget->graph(5)->setVisible(false);
+    ui->ChannelWidget->graph(6)->setVisible(false);
+    ui->ChannelWidget->graph(7)->setVisible(false);
+    ui->ChannelWidget->graph(8)->setVisible(false);
+
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->graph(5)->setVisible(true);
+    ui->ChannelWidget->graph(6)->setVisible(true);
+    ui->ChannelWidget->graph(7)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel4_y[i];
+    }
+    Pen.setColor(Qt::lightGray);
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Forth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel5_y[i];
+    }
+    Pen.setColor(Qt::darkRed);
+    ui->ChannelWidget->graph(5)->setPen(Pen);
+    ui->ChannelWidget->graph(5)->setData(x,y);
+    ui->ChannelWidget->graph(5)->setName("Fifth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel6_y[i];
+    }
+    Pen.setColor(Qt::darkGreen);
+    ui->ChannelWidget->graph(6)->setPen(Pen);
+    ui->ChannelWidget->graph(6)->setData(x,y);
+    ui->ChannelWidget->graph(6)->setName("Sixth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel7_y[i];
+    }
+    Pen.setColor(Qt::darkYellow);
+    ui->ChannelWidget->graph(7)->setPen(Pen);
+    ui->ChannelWidget->graph(7)->setData(x,y);
+    ui->ChannelWidget->graph(7)->setName("Seventh");
+    ui->ChannelWidget->replot();
+
+    return;
+}
+void MainWindow::eigthChannelWave()
+{
+    ui->ChannelWidget->graph(1)->setVisible(true);
+    ui->ChannelWidget->graph(2)->setVisible(true);
+    ui->ChannelWidget->graph(3)->setVisible(true);
+    ui->ChannelWidget->graph(4)->setVisible(true);
+    ui->ChannelWidget->graph(5)->setVisible(true);
+    ui->ChannelWidget->graph(6)->setVisible(true);
+    ui->ChannelWidget->graph(7)->setVisible(true);
+    ui->ChannelWidget->graph(7)->setVisible(true);
+    ui->ChannelWidget->replot();
+
+    unsigned short nSize = pAnalysis->m_DisplayDotNum ;
+    QVector<double> x(nSize),y(nSize);
+    QPen Pen;
+    Pen.setWidth(1);
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel1_y[i];
+    }
+    Pen.setColor(Qt::red);
+    ui->ChannelWidget->graph(1)->setPen(Pen);
+    ui->ChannelWidget->graph(1)->setData(x,y);
+    ui->ChannelWidget->graph(1)->setName("First");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel2_y[i];
+    }
+    Pen.setColor(Qt::green);
+    ui->ChannelWidget->graph(2)->setPen(Pen);
+    ui->ChannelWidget->graph(2)->setData(x,y);
+    ui->ChannelWidget->graph(2)->setName("Second");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel3_y[i];
+    }
+    Pen.setColor(Qt::yellow);
+    ui->ChannelWidget->graph(3)->setPen(Pen);
+    ui->ChannelWidget->graph(3)->setData(x,y);
+    ui->ChannelWidget->graph(3)->setName("third");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel4_y[i];
+    }
+    Pen.setColor(Qt::lightGray);
+    ui->ChannelWidget->graph(4)->setPen(Pen);
+    ui->ChannelWidget->graph(4)->setData(x,y);
+    ui->ChannelWidget->graph(4)->setName("Forth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel5_y[i];
+    }
+    Pen.setColor(Qt::darkRed);
+    ui->ChannelWidget->graph(5)->setPen(Pen);
+    ui->ChannelWidget->graph(5)->setData(x,y);
+    ui->ChannelWidget->graph(5)->setName("Fifth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel6_y[i];
+    }
+    Pen.setColor(Qt::darkGreen);
+    ui->ChannelWidget->graph(6)->setPen(Pen);
+    ui->ChannelWidget->graph(6)->setData(x,y);
+    ui->ChannelWidget->graph(6)->setName("Sixth");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel7_y[i];
+    }
+    Pen.setColor(Qt::darkYellow);
+    ui->ChannelWidget->graph(7)->setPen(Pen);
+    ui->ChannelWidget->graph(7)->setData(x,y);
+    ui->ChannelWidget->graph(7)->setName("Seventh");
+    ui->ChannelWidget->replot();
+
+    for(int i=0;i<nSize;i++)
+    {
+        x[i] = pAnalysis->m_Channel_x[i];
+        y[i] = pAnalysis->m_Channel8_y[i];
+    }
+    Pen.setColor(Qt::darkGray);
+    ui->ChannelWidget->graph(8)->setPen(Pen);
+    ui->ChannelWidget->graph(8)->setData(x,y);
+    ui->ChannelWidget->graph(8)->setName("Eighth");
+    ui->ChannelWidget->replot();
+
+    return;
+}
