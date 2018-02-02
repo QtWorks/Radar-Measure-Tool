@@ -8,7 +8,6 @@ TAnalysis::TAnalysis()
     m_Channels = 4;
     m_ChannelsLeg = 256;
     m_DisplayDotNum = 255;
-
     m_Channel_x = new double   [0xffff];
     m_Channel1_y = new double  [0xffff];
     m_Channel2_y = new double  [0xffff];
@@ -18,6 +17,7 @@ TAnalysis::TAnalysis()
     m_Channel6_y = new double  [0xffff];
     m_Channel7_y = new double  [0xffff];
     m_Channel8_y = new double  [0xffff];
+
 }
 
 TAnalysis::~TAnalysis()
@@ -53,7 +53,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
     */
 
     QString StartBytes = "E4 2C E4 2C";
-    QString StopBytes = "E4 8B E4 8B "; //need a space
+    QString StopBytes = "E4 8B E4 8B ";
     if(str.startsWith(StartBytes)&&str.endsWith(StopBytes))
     {
             //qDebug("Get a valid Frame!\n");
@@ -127,7 +127,7 @@ void TAnalysis::AnalysisRecvData(QString &str)
                     //qDebug("m_DotNum = %d, m_DisplayDotNum=%d\n",m_DotNum,m_DisplayDotNum);
                     int pos = 7;
                     t_DataValue dotvalue;
-                    double tmp[8]={0};
+                    double tmp[m_Channels];
                     for(int n=0;n<m_DisplayDotNum;n++)
                     {
                         for(int m=0;m<m_Channels;m++)//通道的第一个点
@@ -136,17 +136,11 @@ void TAnalysis::AnalysisRecvData(QString &str)
                             dotvalue.Data.LOW_BYTE = temp[pos++];
                             tmp[m] = (double)dotvalue.value;
                         }
-
-                       m_Channel1_y[n] = tmp[0];
-                       m_Channel2_y[n] = tmp[1];
-                       m_Channel3_y[n] = tmp[2];
-                       m_Channel4_y[n] = tmp[3];
-                       m_Channel5_y[n] = tmp[4];
-                       m_Channel6_y[n] = tmp[5];
-                       m_Channel7_y[n] = tmp[6];
-                       m_Channel8_y[n] = tmp[7];
-
-                       m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
+                        m_Channel1_y[n] = tmp[0];
+                        m_Channel2_y[n] = tmp[1];
+                        m_Channel3_y[n] = tmp[2];
+                        m_Channel4_y[n] = tmp[3];
+                        m_Channel_x[n] = (double)(n*m_ChannelsLeg/m_DisplayDotNum-(m_ChannelsLeg/2-1));
                     }
 
                     step = 5;

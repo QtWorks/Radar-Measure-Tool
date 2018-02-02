@@ -473,7 +473,7 @@
       <rect>
        <x>680</x>
        <y>243</y>
-       <width>61</width>
+       <width>51</width>
        <height>16</height>
       </rect>
      </property>
@@ -481,17 +481,43 @@
       <string>图例</string>
      </property>
     </widget>
-    <widget class="QLabel" name="DifferLabel">
+    <widget class="QLabel" name="Y1Label">
      <property name="geometry">
       <rect>
-       <x>322</x>
+       <x>21</x>
        <y>240</y>
-       <width>61</width>
+       <width>31</width>
        <height>21</height>
       </rect>
      </property>
      <property name="text">
-      <string>(Y1-Y2):</string>
+      <string>Y1:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Y2Label">
+     <property name="geometry">
+      <rect>
+       <x>153</x>
+       <y>240</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y2:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="DYLabel">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>240</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DY(Y1-Y2):</string>
      </property>
     </widget>
     <widget class="QLabel" name="PositiveLabel">
@@ -499,7 +525,7 @@
       <rect>
        <x>23</x>
        <y>491</y>
-       <width>71</width>
+       <width>51</width>
        <height>16</height>
       </rect>
      </property>
@@ -510,9 +536,9 @@
     <widget class="QLabel" name="NegativeLabel">
      <property name="geometry">
       <rect>
-       <x>222</x>
-       <y>491</y>
-       <width>81</width>
+       <x>182</x>
+       <y>490</y>
+       <width>61</width>
        <height>16</height>
       </rect>
      </property>
@@ -520,12 +546,77 @@
       <string>Negative:</string>
      </property>
     </widget>
+    <widget class="QLabel" name="Y1DataLabel">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>240</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Y2DataLabel">
+     <property name="geometry">
+      <rect>
+       <x>183</x>
+       <y>240</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="DYDataLabel">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>240</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="PositiveDataLabel">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>490</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="NegativeDataLabel">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>490</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
     <widget class="QCheckBox" name="WaveMeasureCheckBox">
      <property name="geometry">
       <rect>
-       <x>620</x>
+       <x>628</x>
        <y>243</y>
-       <width>61</width>
+       <width>51</width>
        <height>16</height>
       </rect>
      </property>
@@ -536,9 +627,9 @@
     <widget class="QCheckBox" name="SpeedMeasureCheckBox">
      <property name="geometry">
       <rect>
-       <x>620</x>
+       <x>630</x>
        <y>493</y>
-       <width>61</width>
+       <width>71</width>
        <height>16</height>
       </rect>
      </property>
@@ -557,82 +648,6 @@
      </property>
      <property name="text">
       <string>图例</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Y1Label">
-     <property name="geometry">
-      <rect>
-       <x>22</x>
-       <y>242</y>
-       <width>21</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Y1:</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="Y1ValLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>241</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Y2Label">
-     <property name="geometry">
-      <rect>
-       <x>166</x>
-       <y>243</y>
-       <width>21</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Y2:</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="Y2ValLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>192</x>
-       <y>241</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="DifferValLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>384</x>
-       <y>241</y>
-       <width>113</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="PositiveLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>490</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="NegativeLineEdit">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>489</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
      </property>
     </widget>
    </widget>

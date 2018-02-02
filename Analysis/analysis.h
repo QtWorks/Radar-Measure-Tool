@@ -38,10 +38,10 @@ public:
     unsigned char m_StartBytes[4];  //起始字节
     unsigned char m_Channels;       //通道数
     unsigned short m_ChannelsLeg;   //通道总长
+
     unsigned short m_StopByte[4];
     unsigned short m_DotNum;
     unsigned short m_DisplayDotNum;
-
     //数据坐标值
     double *m_Channel_x;
     double *m_Channel1_y;
@@ -52,12 +52,13 @@ public:
     double *m_Channel6_y;
     double *m_Channel7_y;
     double *m_Channel8_y;
-
     //速度坐标值
     double m_PositiveSpeed;
     double m_PositiveAmp;
     double m_NegativeSpeed;
     double m_NegativeAmp;
+
+    //QString m_AnalysisBuf;
 
 };
 

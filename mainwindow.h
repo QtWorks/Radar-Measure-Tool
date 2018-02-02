@@ -8,7 +8,7 @@
 #include "Qcustomplot/qcustomplot.h"
 #include "qtimer.h"
 #include "QPainter"
-#include "QtGlobal"
+#include "QToolTip"
 
 namespace Ui {
 class MainWindow;
@@ -43,55 +43,35 @@ private slots:
     void on_SpeedLegendCheckBox_toggled(bool checked);
     void on_SpeedMeasureCheckBox_toggled(bool checked);
 
+
     //接收数据
-    void ReceiveData();//串口数据触发
-    void RecvWaveData();//定时器触发
+    void ReceiveData(); //串口数据触发
+    void RecvWaveData(); //定时器触发
+    void MeasurePoint(QMouseEvent *pEvent);//鼠标事件触发
+    void MeasureSpeed(QMouseEvent *pEvent);
 
     void ActiveMeasureCusor(QMouseEvent *pEvent);
     void MeasureCusorTrack(QMouseEvent *pEvent);
-    void ActiveSpeedCusor(QMouseEvent *pEvent);
-    void SpeedCusorTrack(QMouseEvent *pEvent);
-
-
     void MeasureCusorY1Dispose(QMouseEvent *pEvent);
     void MeasureCusorY2Dispose(QMouseEvent *pEvent);
-    void MeasureCusorY3Dispose(QMouseEvent *pEvent);
-
-
-private:
-    void oneChannelWave(void);
-    void twoChannelWave(void);
-    void threeChannelWave(void);
-    void fourChannelWave(void);
-    void fiveChannelWave(void);
-    void sixChannelWave(void);
-    void sevenChannelWave(void);
-    void eigthChannelWave(void);
 
 private:
     int index;
     double Value;
     bool m_StartButtonState;//开始按钮标志
     unsigned char OperateFlag;
-
-    int m_XScanRange;//X扫描范围
+    int m_XScanRange;
     double m_XStart;
     double m_XStop;
-
-    int m_YScanRange;//Y扫描范围
-
-    int m_DisplayPoint;//显示点数
-
-    double m_DataRange;//数据范围
-
-    double m_Moment;//时刻
-
+    int m_YScanRange;
+    int m_DisplayPoint;
+    double m_Moment;
     bool FrameStartFlag;
-    bool m_ActiveFlagPoint;//测量光标标志
-    bool m_ActiveFlagSpeed;
+    double m_DataRange;
 
+    double Y1,Y2,DY;
+    bool m_ActiveFlagPoint;
     bool m_ClickFlagPoint;
-    bool m_ClickFlagSpeed;
 
     Ui::MainWindow *ui;
     TCom *pCom;//串口
@@ -104,7 +84,6 @@ private:
     QString m_SubAnalysisData;
     QVector<double> Speed_X,Speed_Y,Speed_NY;
 
-    double Y1,Y2,Y3,Y4,DY;
 };
 
 #endif // MAINWINDOW_H
